@@ -3,133 +3,221 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>42 App · Monthly Metrics</title>
+<title>42 App · Monthly Metrics Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#0A1520;--card:#112030;--card2:#162840;
-  --cyan:#00C8E8;--cyan-dim:rgba(0,200,232,.10);--cyan-border:rgba(0,200,232,.22);
-  --green:#22C55E;--green-dim:rgba(34,197,94,.10);
+  --bg:#0A1520;--bg2:#0E1B28;--card:#112030;--card2:#162840;
+  --cyan:#00C8E8;--cyan2:#33D9F5;--cyan-dim:rgba(0,200,232,.10);--cyan-border:rgba(0,200,232,.20);
+  --green:#22C55E;--green-dim:rgba(34,197,94,.10);--green-border:rgba(34,197,94,.25);
   --amber:#F59E0B;--amber-dim:rgba(245,158,11,.10);
   --red:#EF4444;--red-dim:rgba(239,68,68,.10);
   --purple:#A78BFA;--purple-dim:rgba(167,139,250,.10);
-  --orange:#F97316;--teal:#14B8A6;
-  --white:#fff;--t1:rgba(255,255,255,.92);--t2:rgba(255,255,255,.58);--t3:rgba(255,255,255,.34);
+  --teal:#14B8A6;--orange:#F97316;--pink:#EC4899;
+  --white:#fff;--t1:rgba(255,255,255,.92);--t2:rgba(255,255,255,.55);--t3:rgba(255,255,255,.32);
   --border:rgba(255,255,255,.06);--border2:rgba(255,255,255,.11);--radius:14px;
 }
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--t1);min-height:100vh;line-height:1.5}
-.header{background:rgba(10,21,32,.97);border-bottom:1px solid var(--border2);padding:10px 28px;min-height:60px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200}
+.header{background:rgba(10,21,32,.97);backdrop-filter:blur(16px);border-bottom:1px solid var(--border2);padding:10px 28px;min-height:60px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200}
 .hlogo{display:flex;align-items:center;gap:12px}
 .hlogo svg{width:34px;height:34px;flex-shrink:0}
 .htitle{font-size:16px;font-weight:700;color:var(--white)}
-.hsub{font-size:11px;color:var(--t3)}
+.hsub{font-size:11px;color:var(--t3);margin-top:1px}
 .hright{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .badge{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;padding:5px 11px;border-radius:20px;white-space:nowrap}
 .badge-dot{width:6px;height:6px;border-radius:50%}
 .badge.loading{background:var(--cyan-dim);border:1px solid var(--cyan-border);color:var(--cyan)}.badge.loading .badge-dot{background:var(--cyan);animation:blink .8s steps(1) infinite}
-.badge.live{background:var(--green-dim);border:1px solid rgba(34,197,94,.25);color:var(--green)}.badge.live .badge-dot{background:var(--green)}
-.badge.error{background:var(--red-dim);border:1px solid rgba(239,68,68,.28);color:var(--red)}.badge.error .badge-dot{background:var(--red)}
+.badge.live{background:var(--green-dim);border:1px solid var(--green-border);color:var(--green)}.badge.live .badge-dot{background:var(--green);animation:pulse 2.2s ease-in-out infinite}
 .badge.cached{background:var(--amber-dim);border:1px solid rgba(245,158,11,.28);color:var(--amber)}.badge.cached .badge-dot{background:var(--amber)}
+.badge.error{background:var(--red-dim);border:1px solid rgba(239,68,68,.28);color:var(--red)}.badge.error .badge-dot{background:var(--red)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
 @keyframes blink{50%{opacity:0}}
-.hbtn{background:var(--cyan);color:#000;border:none;padding:8px 16px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer}
-.hbtn:disabled{opacity:.5;cursor:not-allowed}
+.hbtn{background:var(--cyan);color:#000;border:none;padding:8px 16px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px}
+.hbtn:hover{background:var(--cyan2)}.hbtn:disabled{opacity:.5;cursor:not-allowed}
 .month-pick{background:var(--card2);border:1px solid var(--border2);color:var(--t1);padding:7px 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;outline:none}
+.month-pick option{background:var(--bg2)}
 .main{padding:24px 28px;max-width:1440px;margin:0 auto}
-.section-title{font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--t3);margin:6px 0 14px;padding-bottom:10px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;gap:10px}
-.banner{border-radius:10px;padding:12px 18px;margin-bottom:20px;font-size:12.5px;line-height:1.6;background:var(--cyan-dim);border:1px solid var(--cyan-border);color:var(--t2)}
+.section-title{font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--t3);margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px}
+.section-title .note{font-size:10px;text-transform:none;letter-spacing:0}
+.banner{border-radius:10px;padding:12px 18px;display:flex;gap:12px;align-items:flex-start;margin-bottom:20px;font-size:12.5px;line-height:1.6;background:var(--green-dim);border:1px solid var(--green-border);color:rgba(34,197,94,.9)}
 .banner.err{background:var(--red-dim);border-color:rgba(239,68,68,.3);color:#fca5a5}
-.banner strong{color:var(--t1)}
+.banner svg{width:16px;height:16px;flex-shrink:0;margin-top:2px}
 .kpi-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:22px}
-@media(min-width:820px){.kpi-grid{grid-template-columns:repeat(4,1fr)}}
-@media(min-width:1200px){.kpi-grid{grid-template-columns:repeat(5,1fr)}}
-.kpi{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;position:relative;overflow:hidden}
+@media(min-width:820px){.kpi-grid{grid-template-columns:repeat(5,1fr)}}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px 18px;position:relative;overflow:hidden}
 .kpi::after{content:'';position:absolute;top:0;left:0;right:0;height:2.5px}
-.kpi.c::after{background:var(--cyan)}.kpi.g::after{background:var(--green)}.kpi.r::after{background:var(--red)}.kpi.p::after{background:var(--purple)}.kpi.a::after{background:var(--amber)}
+.kpi.c::after{background:linear-gradient(90deg,var(--cyan),var(--cyan2))}.kpi.g::after{background:linear-gradient(90deg,#16A34A,var(--green))}.kpi.r::after{background:var(--red)}.kpi.p::after{background:linear-gradient(90deg,#7C3AED,var(--purple))}
+.kpi-icon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;margin-bottom:14px}
+.kpi.c .kpi-icon{background:var(--cyan-dim)}.kpi.g .kpi-icon{background:var(--green-dim)}.kpi.r .kpi-icon{background:var(--red-dim)}.kpi.p .kpi-icon{background:var(--purple-dim)}
+.kpi-icon svg{width:17px;height:17px}
+.kpi.c .kpi-icon svg{color:var(--cyan)}.kpi.g .kpi-icon svg{color:var(--green)}.kpi.r .kpi-icon svg{color:var(--red)}.kpi.p .kpi-icon svg{color:var(--purple)}
 .kpi-lbl{font-size:10.5px;font-weight:600;letter-spacing:.04em;color:var(--t3);margin-bottom:6px;text-transform:uppercase}
-.kpi-val{font-size:26px;font-weight:800;line-height:1.1;margin-bottom:8px}
-.kpi.c .kpi-val{color:var(--cyan)}.kpi.g .kpi-val{color:var(--green)}.kpi.r .kpi-val{color:var(--red)}.kpi.p .kpi-val{color:var(--purple)}.kpi.a .kpi-val{color:var(--amber)}
-.kpi-delta{display:inline-flex;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;background:rgba(255,255,255,.05);color:var(--t3)}
+.kpi-val{font-size:30px;font-weight:800;line-height:1;margin-bottom:8px;letter-spacing:-.02em}
+.kpi.c .kpi-val{color:var(--cyan)}.kpi.g .kpi-val{color:var(--green)}.kpi.r .kpi-val{color:var(--red)}.kpi.p .kpi-val{color:var(--purple)}
+.kpi-delta{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;background:rgba(255,255,255,.05);color:var(--t3)}
 .kpi-delta.up{background:var(--green-dim);color:var(--green)}.kpi-delta.dn{background:var(--red-dim);color:var(--red)}
 .kpi-src{font-size:10.5px;color:var(--t3);margin-top:6px}
-.grid2{display:grid;grid-template-columns:1fr;gap:14px;margin-bottom:14px}
-@media(min-width:900px){.grid2{grid-template-columns:1.6fr 1fr}.grid2.even{grid-template-columns:1.1fr .9fr}}
-.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:22px;margin-bottom:14px;min-width:0}
-.grid2 .card{margin-bottom:0}
-.card-hd{font-size:14px;font-weight:700;color:var(--white);margin-bottom:3px}
-.card-sub{font-size:11.5px;color:var(--t3);margin-bottom:16px}
-.chart-wrap{position:relative;height:230px}
-.f-row{display:grid;grid-template-columns:170px 1fr 70px 52px;align-items:center;gap:10px;margin-bottom:9px}
-.f-lbl{font-size:12px;color:var(--t2)}
-.f-lbl code{display:block;font-size:9.5px;color:var(--t3)}
-.f-track{height:24px;background:rgba(255,255,255,.04);border-radius:6px;overflow:hidden}
-.f-bar{height:100%;border-radius:6px;transition:width .5s}
-.f-num{font-size:12.5px;font-weight:700;text-align:right;font-variant-numeric:tabular-nums}
-.f-num small{display:block;font-size:9.5px;font-weight:400;color:var(--t3)}
-.f-pct{font-size:10.5px;color:var(--t3);text-align:right}
-@media(max-width:560px){.f-row{grid-template-columns:110px 1fr 60px}.f-pct{display:none}}
-.f-stats{display:flex;gap:14px;flex-wrap:wrap;padding-top:14px;margin-top:8px;border-top:1px solid var(--border)}
-.f-stat{flex:1;min-width:90px}
-.f-stat-lbl{font-size:9.5px;color:var(--t3);text-transform:uppercase;letter-spacing:.05em}
-.f-stat-val{font-size:15px;font-weight:800}
-.tbl-wrap{overflow-x:auto}
+.charts-top{display:grid;grid-template-columns:1fr;gap:14px;margin-bottom:22px}
+@media(min-width:900px){.charts-top{grid-template-columns:2fr 1fr}}
+.chart-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:22px;min-width:0}
+.chart-hd{font-size:14px;font-weight:700;color:var(--white);margin-bottom:3px}
+.chart-sub{font-size:11.5px;color:var(--t3);margin-bottom:18px}
+.chart-wrap{position:relative}.h220{height:220px}.h200{height:200px}
+.bottom-row{display:grid;grid-template-columns:1fr;gap:14px;margin-bottom:22px}
+@media(min-width:900px){.bottom-row{grid-template-columns:1.1fr .9fr}}
+.funnel-row{display:flex;align-items:center;gap:10px;margin-bottom:9px}
+.funnel-lbl{font-size:11.5px;color:var(--t2);width:170px;flex-shrink:0}
+.funnel-event{font-size:9.5px;color:var(--t3);display:block;font-family:monospace;margin-top:1px}
+.funnel-track{flex:1;height:24px;background:rgba(255,255,255,.04);border-radius:6px;overflow:hidden;min-width:40px}
+.funnel-bar{height:100%;border-radius:6px;transition:width .6s cubic-bezier(.25,.46,.45,.94)}
+.funnel-num{font-size:12px;font-weight:700;color:var(--t1);min-width:70px;text-align:right;font-variant-numeric:tabular-nums}
+.funnel-pct{font-size:10.5px;color:var(--t3);min-width:46px;text-align:right}
+@media(max-width:560px){.funnel-lbl{width:110px}.funnel-pct{display:none}}
+.funnel-stats{display:flex;gap:14px;flex-wrap:wrap;padding-top:14px;margin-top:6px;border-top:1px solid var(--border)}
+.funnel-stat{flex:1;min-width:90px}
+.funnel-stat-lbl{font-size:9.5px;color:var(--t3);margin-bottom:3px;text-transform:uppercase;letter-spacing:.05em}
+.funnel-stat-val{font-size:15px;font-weight:800}
+.tbl-scroll{max-height:380px;overflow:auto}
 table{width:100%;border-collapse:collapse}
-th{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--t3);padding:8px 10px;text-align:right;border-bottom:1px solid var(--border);white-space:nowrap}
-td{font-size:12.5px;color:var(--t2);padding:9px 10px;border-bottom:1px solid var(--border);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
-th:first-child,td:first-child{text-align:left}
-tr.cur td{background:rgba(0,200,232,.05);color:var(--t1);font-weight:700}
+thead th{font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);padding:8px 12px;text-align:right;border-bottom:1px solid var(--border);background:var(--card);position:sticky;top:0;white-space:nowrap}
+thead th:first-child,tbody td:first-child{text-align:left}
+tbody td{font-size:13px;color:var(--t2);padding:10px 12px;border-bottom:1px solid var(--border);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+tbody tr:hover td{background:rgba(255,255,255,.02);color:var(--t1)}
+.td-c{color:var(--cyan)!important;font-weight:700}.td-g{color:var(--green)!important;font-weight:700}.td-b{font-weight:700;color:var(--t1)!important}
+.cur td{background:rgba(0,200,232,.05)}
+.src-table td,.src-table th{font-size:11.5px;text-align:left!important;white-space:normal}
+.cum-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:22px;margin-bottom:22px}
 .muted{color:var(--t3)}
-.foot{font-size:11px;color:var(--t3);margin:18px 0 30px}
+.foot{font-size:11px;color:var(--t3);margin:-8px 0 30px}
 </style>
 </head>
 <body>
+
 <header class="header">
   <div class="hlogo">
-    <svg viewBox="0 0 34 34" fill="none"><circle cx="17" cy="17" r="15.5" stroke="#00C8E8" stroke-width="2" fill="rgba(0,200,232,.06)"/><text x="17" y="22" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="13" font-weight="800" fill="#00C8E8">42</text></svg>
-    <div><div class="htitle">42 App · Monthly Metrics</div><div class="hsub">GA4 detalytics-prod (412628536) + Google Ads (855-411-4401) · live via Make.com</div></div>
+    <svg viewBox="0 0 34 34" fill="none">
+      <defs><linearGradient id="g1" x1="0" y1="0" x2="34" y2="34" gradientUnits="userSpaceOnUse"><stop stop-color="#00E5FF"/><stop offset="1" stop-color="#0090C8"/></linearGradient></defs>
+      <circle cx="17" cy="17" r="15.5" stroke="url(#g1)" stroke-width="2" fill="rgba(0,200,232,.06)"/>
+      <text x="17" y="22" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="13" font-weight="800" fill="url(#g1)">42</text>
+    </svg>
+    <div>
+      <div class="htitle">42 App · Monthly Metrics</div>
+      <div class="hsub">Detalytics · GA4 live data via Make.com</div>
+    </div>
   </div>
   <div class="hright">
-    <div class="badge loading" id="badge"><div class="badge-dot"></div><span id="badgeText">Loading GA4…</span></div>
-    <button class="hbtn" id="refreshBtn" onclick="load(true)">Refresh</button>
+    <div class="badge loading" id="dataBadge"><div class="badge-dot"></div><span id="badgeText">Connecting…</span></div>
+    <button class="hbtn" id="updateBtn" onclick="load(true)">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+      Update Data
+    </button>
     <select class="month-pick" id="monthPicker" onchange="render()"></select>
   </div>
 </header>
 
 <div class="main">
-  <div class="banner" id="banner">Funnel steps are <strong>event counts</strong>. Installs come from Google Ads; every other number comes from GA4. The current month is month to date.</div>
 
-  <div class="section-title"><span>Key metrics · <span id="kpiMonth">…</span></span><span id="kpiNote"></span></div>
-  <div class="kpi-grid" id="kpis"></div>
+  <div class="banner" id="banner">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+    <p id="bannerText">Loading live data from GA4 property <strong>detalytics-prod</strong>…</p>
+  </div>
 
-  <div class="section-title"><span>Funnel and monthly summary</span></div>
-  <div class="grid2 even">
-    <div class="card">
-      <div class="card-hd">Funnel</div>
-      <div class="card-sub" id="funnelSub">…</div>
+  <div class="section-title"><span>Key Metrics · <span id="kpiMonthLabel">…</span></span><span class="note" id="kpiNote"></span></div>
+  <div class="kpi-grid">
+    <div class="kpi c">
+      <div class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+      <div class="kpi-lbl">Cumulative Users</div>
+      <div class="kpi-val" id="kCum">…</div>
+      <div class="kpi-delta" id="kCumD">…</div>
+      <div class="kpi-src">GA4 newUsers, running total since Apr 2025</div>
+    </div>
+    <div class="kpi g">
+      <div class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg></div>
+      <div class="kpi-lbl">New Users This Month</div>
+      <div class="kpi-val" id="kNew">…</div>
+      <div class="kpi-delta" id="kNewD">…</div>
+      <div class="kpi-src">GA4 newUsers · month total</div>
+    </div>
+    <div class="kpi c">
+      <div class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+      <div class="kpi-lbl">Monthly Active Users</div>
+      <div class="kpi-val" id="kMAU">…</div>
+      <div class="kpi-delta" id="kMAUD">…</div>
+      <div class="kpi-src">GA4 activeUsers · calendar month</div>
+    </div>
+    <div class="kpi r">
+      <div class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="22" y1="18" x2="16" y2="18"/></svg></div>
+      <div class="kpi-lbl">Uninstalls</div>
+      <div class="kpi-val" id="kUni">…</div>
+      <div class="kpi-delta" id="kUniD">…</div>
+      <div class="kpi-src">GA4 app_remove events · proxy for deregistrations</div>
+    </div>
+    <div class="kpi p">
+      <div class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div>
+      <div class="kpi-lbl">Free to Paid Conversion</div>
+      <div class="kpi-val" id="kConv">…</div>
+      <div class="kpi-delta" id="kConvD">…</div>
+      <div class="kpi-src" id="kConvSrc">in_app_purchase / registrations</div>
+    </div>
+  </div>
+
+  <div class="section-title"><span>Trend Analysis</span><span class="note" id="trendRange"></span></div>
+  <div class="charts-top">
+    <div class="chart-card">
+      <div class="chart-hd">MAU &amp; New Users</div>
+      <div class="chart-sub">Monthly active users (bars) vs GA4 new users (line)</div>
+      <div class="chart-wrap h220"><canvas id="mauChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-hd">Churn Rate (uninstalls)</div>
+      <div class="chart-sub">app_remove events as % of MAU</div>
+      <div class="chart-wrap h220"><canvas id="churnChart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="section-title"><span>App Event Funnel &amp; Monthly Summary</span></div>
+  <div class="bottom-row">
+    <div class="chart-card">
+      <div class="chart-hd">App Event Funnel</div>
+      <div class="chart-sub" id="funnelSub">…</div>
       <div id="funnel"></div>
+      <div class="funnel-stats" id="funnelStats"></div>
     </div>
-    <div class="card">
-      <div class="card-hd">Funnel events by month</div>
-      <div class="card-sub">Last 6 months, event counts</div>
-      <div class="tbl-wrap"><table><thead><tr><th>Month</th><th>Installs</th><th>First open</th><th>Assess.</th><th>Regs</th><th>Trials</th><th>Paywall</th><th>IAP</th></tr></thead><tbody id="sumBody"></tbody></table></div>
+    <div class="chart-card">
+      <div class="chart-hd">Monthly Summary</div>
+      <div class="chart-sub">Apr 2025 to date · selected month highlighted</div>
+      <div class="tbl-scroll">
+        <table>
+          <thead><tr><th>Month</th><th>Cumulative users</th><th>New registered users</th><th>MAU</th></tr></thead>
+          <tbody id="summaryTbody"></tbody>
+        </table>
+      </div>
     </div>
   </div>
 
-  <div class="section-title"><span>Monthly metrics since Apr 2025</span></div>
-  <div class="card tbl-wrap">
-    <table><thead><tr><th>Month</th><th>Cumulative users</th><th>New registered users</th><th>MAU</th><th>Deleted accounts</th><th>Churn rate</th><th>Registered to paid</th></tr></thead><tbody id="monthBody"></tbody></table>
+  <div class="section-title"><span>User Growth</span></div>
+  <div class="cum-card">
+    <div class="chart-hd">Cumulative Users</div>
+    <div class="chart-sub">Running total of GA4 new users · April 2025 to present</div>
+    <div class="chart-wrap h200"><canvas id="cumChart"></canvas></div>
   </div>
 
-  <div class="section-title"><span>Definitions and sources</span></div>
-  <div class="card tbl-wrap">
-    <table><thead><tr><th>Metric</th><th>Source</th><th>Definition</th></tr></thead><tbody>
-      <tr><td>Cumulative users</td><td>GA4</td><td style="white-space:normal">Running total of GA4 newUsers (app + web) from April 2025</td></tr>
-      <tr><td>New registered users</td><td>GA4</td><td style="white-space:normal">successful_account_registration events in the month (event tracked since Dec 2025)</td></tr>
-      <tr><td>MAU</td><td>GA4</td><td style="white-space:normal">activeUsers in the calendar month</td></tr>
-      <tr><td>Deleted accounts / churn</td><td>Not tracked</td><td style="white-space:normal">GA4 has no account deletion event. Needs an account_deleted event in the app, or a monthly export from the backend. Churn rate = deleted accounts / MAU</td></tr>
-      <tr><td>Registered to paid</td><td>GA4</td><td style="white-space:normal">in_app_purchase events / successful_account_registration events in the month (purchases include renewals)</td></tr>
-      <tr><td>Installs</td><td>Google Ads</td><td style="white-space:normal">All conversions for "App Install (Android)"</td></tr>
-      <tr><td>Funnel steps</td><td>GA4</td><td style="white-space:normal">Event counts for first_open, assessment_start, successful_account_registration, trial_start, paywall_view, in_app_purchase</td></tr>
-    </tbody></table>
+  <div class="section-title"><span>GA4 Event Mapping</span></div>
+  <div class="chart-card" style="overflow-x:auto;margin-bottom:22px">
+    <table class="src-table">
+      <thead><tr><th>Dashboard metric</th><th>Source / event</th><th>Type</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>Cumulative users</td><td class="td-c">newUsers</td><td>GA4 metric</td><td>Running total from April 2025 (app + web)</td></tr>
+        <tr><td>New users</td><td class="td-c">newUsers</td><td>GA4 metric</td><td>Users seen for the first time in the month</td></tr>
+        <tr><td>New registered users</td><td class="td-g">successful_account_registration</td><td>Custom event</td><td>Event count; tracked since Dec 2025</td></tr>
+        <tr><td>Monthly active users</td><td class="td-c">activeUsers</td><td>GA4 metric</td><td>Calendar month</td></tr>
+        <tr><td>Uninstalls / churn</td><td class="td-c">app_remove</td><td>GA4 auto-collected</td><td>Android only. Proxy until the app sends an account_deleted event</td></tr>
+        <tr><td>Free to paid conversion</td><td class="td-c">in_app_purchase / successful_account_registration</td><td>Event ratio</td><td>Purchases include renewals</td></tr>
+        <tr><td>Installs</td><td>Google Ads · App Install (Android)</td><td>Conversion</td><td>Not connected yet</td></tr>
+        <tr><td>Funnel steps</td><td>first_open, assessment_start, successful_account_registration, trial_start, paywall_view, in_app_purchase</td><td>Event counts</td><td>GA4</td></tr>
+      </tbody>
+    </table>
   </div>
   <div class="foot" id="foot"></div>
 </div>
@@ -137,44 +225,29 @@ tr.cur td{background:rgba(0,200,232,.05);color:var(--t1);font-weight:700}
 <script>
 const WEBHOOK = 'https://hook.us2.make.com/3mwqjnu35f913zunagm1w3ib7prjgqgv';
 const START = '2023-10-01';
-const CUM_FROM = '202504';
-const CACHE_KEY = 'ga4_42_cache_v4';
+const FROM = '202504';
+const CACHE_KEY = 'ga4_42_cache_v5';
 const STEPS = [
-  {key:'installs',label:'Installs',src:'Google Ads',name:'App Install (Android)',color:'#00C8E8'},
-  {key:'first_open',label:'First open',src:'GA4',name:'first_open',color:'#14B8A6'},
-  {key:'assessment_start',label:'Assessment start',src:'GA4',name:'assessment_start',color:'#F59E0B'},
-  {key:'successful_account_registration',label:'Registration',src:'GA4',name:'successful_account_registration',color:'#22C55E'},
-  {key:'trial_start',label:'Trial start',src:'GA4',name:'trial_start',color:'#F97316'},
-  {key:'paywall_view',label:'Paywall view',src:'GA4',name:'paywall_view',color:'#EC4899'},
-  {key:'in_app_purchase',label:'In-app purchases',src:'GA4',name:'in_app_purchase',color:'#A78BFA'}
+  {key:'installs',label:'Installs',ev:'Google Ads',color:'linear-gradient(90deg,#0A8FAA,#00C8E8)'},
+  {key:'first_open',label:'First Open',ev:'first_open',color:'linear-gradient(90deg,#0E9E7E,#14B8A6)'},
+  {key:'assessment_start',label:'Assessment Start',ev:'assessment_start',color:'linear-gradient(90deg,#B47D0A,#F59E0B)'},
+  {key:'successful_account_registration',label:'Registration',ev:'successful_account_registration',color:'linear-gradient(90deg,#1A8A4A,#22C55E)'},
+  {key:'trial_start',label:'Trial Start',ev:'trial_start',color:'linear-gradient(90deg,#C45210,#F97316)'},
+  {key:'paywall_view',label:'Paywall View',ev:'paywall_view',color:'linear-gradient(90deg,#B0306E,#EC4899)'},
+  {key:'in_app_purchase',label:'In-App Purchases',ev:'in_app_purchase',color:'linear-gradient(90deg,#7C3AED,#A78BFA)'}
 ];
 const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-let D = null; // {months, U:{ym:{active,new}}, E:{ym:{key:count}}, rev:{ym:n}, hasAds, fetchedAt, endDate}
+const MONF = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+let D = null;
 
 const fmt = n => n == null ? '–' : Math.round(n).toLocaleString('en-IN');
-const fmtK = n => n == null ? '–' : (n >= 100000 ? (n/1000).toFixed(0)+'K' : n >= 10000 ? (n/1000).toFixed(1).replace(/\.0$/,'')+'K' : Math.round(n).toLocaleString('en-IN'));
+const fmtK = n => n == null ? '–' : n >= 1000 ? (n/1000).toFixed(n >= 100000 ? 0 : 1).replace(/\.0$/,'')+'K' : String(Math.round(n));
 const pctf = n => n == null ? '–' : n.toFixed(1)+'%';
-const ymLabel = ym => MON[+ym.slice(4)-1] + ' ' + ym.slice(2,4);
-const ymFull = ym => ['January','February','March','April','May','June','July','August','September','October','November','December'][+ym.slice(4)-1] + ' ' + ym.slice(0,4);
+const ymL = ym => MON[+ym.slice(4)-1] + ' ' + ym.slice(2,4);
+const ymF = ym => MONF[+ym.slice(4)-1] + ' ' + ym.slice(0,4);
 const iso = d => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 
-function setBadge(cls, text){ const b=document.getElementById('badge'); b.className='badge '+cls; document.getElementById('badgeText').textContent=text; }
-
-// Google Ads rows arrive from Make as flat objects, e.g. {segments_month:'2026-10-01', metrics_allConversions:2076}
-function adsRows(raw){
-  let a = raw.ads; if (a == null) return null;
-  if (typeof a === 'string') { try { a = JSON.parse(a.trim().startsWith('[') ? a : '['+a+']'); } catch(e) { return null; } }
-  if (!Array.isArray(a)) a = a.results || a.array || [a];
-  const out = {};
-  a.forEach(r => {
-    const flat = {}; (function walk(o,p){ for (const k in o) { const v=o[k]; if (v && typeof v==='object') walk(v,p+k+'_'); else flat[(p+k).toLowerCase()]=v; } })(r,'');
-    const mk = Object.keys(flat).find(k=>k.includes('month')); const ck = Object.keys(flat).find(k=>k.includes('allconversions'));
-    if (!mk || !ck) return;
-    const ym = String(flat[mk]).slice(0,7).replace('-','');
-    out[ym] = (out[ym]||0) + (+flat[ck]||0);
-  });
-  return out;
-}
+function setBadge(cls, text){ document.getElementById('dataBadge').className='badge '+cls; document.getElementById('badgeText').textContent=text; }
 
 function parse(raw, endDate){
   const ga = raw.ga4 ? (typeof raw.ga4 === 'string' ? JSON.parse(raw.ga4) : raw.ga4) : raw;
@@ -184,17 +257,15 @@ function parse(raw, endDate){
   (r0.rows||[]).forEach(r => { const ym=r.dimensionValues[0].value, m=r.metricValues.map(x=>+x.value); U[ym]={active:m[0],new:m[1]}; });
   (r1.rows||[]).forEach(r => { const ym=r.dimensionValues[0].value, ev=r.dimensionValues[1].value, m=r.metricValues.map(x=>+x.value);
     (E[ym]=E[ym]||{})[ev]=m[0]; if (ev==='in_app_purchase') rev[ym]=m[2]; });
-  const ads = adsRows(raw);
-  if (ads) Object.keys(ads).forEach(ym => { (E[ym]=E[ym]||{}).installs = Math.round(ads[ym]); });
   const curYm = endDate.slice(0,4)+endDate.slice(5,7);
-  const months = Object.keys(U).filter(ym=>ym>=CUM_FROM && ym<=curYm).sort();
-  return {months, U, E, rev, hasAds: !!ads, endDate, fetchedAt: Date.now()};
+  const months = Object.keys(U).filter(ym=>ym>=FROM && ym<=curYm).sort();
+  return {months, U, E, rev, endDate, fetchedAt: Date.now()};
 }
 
 async function load(force){
-  const btn=document.getElementById('refreshBtn');
-  if (!force) { try { const c = JSON.parse(localStorage.getItem(CACHE_KEY)||'null'); if (c && c.months) { D=c; setup(); setBadge('cached','Cached · refreshing…'); } } catch(e){} }
-  btn.disabled = true; if (!D) setBadge('loading','Loading GA4…');
+  const btn=document.getElementById('updateBtn');
+  if (!force) { try { const c=JSON.parse(localStorage.getItem(CACHE_KEY)||'null'); if (c && c.months) { D=c; setup(); setBadge('cached','Cached · refreshing…'); } } catch(e){} }
+  btn.disabled = true; if (!D || force) setBadge('loading','Fetching from GA4…');
   const endDate = iso(new Date());
   try {
     const resp = await fetch(WEBHOOK, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({startDate: START, endDate})});
@@ -203,66 +274,87 @@ async function load(force){
     try { localStorage.setItem(CACHE_KEY, JSON.stringify(D)); } catch(e){}
     setup();
     setBadge('live','Live · data to ' + endDate);
-    const b=document.getElementById('banner'); b.className='banner';
-    if (!D.hasAds) b.innerHTML = 'Funnel steps are <strong>event counts</strong>. <strong>Installs are not connected yet</strong>: the Google Ads step is still being added to Make. Every other number comes from GA4. The current month is month to date.';
+    document.getElementById('banner').className='banner';
+    document.getElementById('bannerText').innerHTML = '<strong>GA4 live data connected.</strong> Every number comes from GA4 property <strong>detalytics-prod</strong> via Make.com. Funnel steps are event counts. Uninstalls (app_remove) stand in for deregistrations. Installs from Google Ads are not connected yet.';
   } catch(err) {
     console.error(err);
-    setBadge('error','Fetch failed');
-    const b=document.getElementById('banner'); b.className='banner err';
-    b.innerHTML = '<strong>Could not load data.</strong> ' + (D ? 'Showing the last saved copy from ' + new Date(D.fetchedAt).toLocaleString() + '. ' : '') + 'Click Refresh to try again. (' + String(err.message).replace(/</g,'&lt;') + ')';
+    setBadge('error','GA4 fetch failed');
+    document.getElementById('banner').className='banner err';
+    document.getElementById('bannerText').innerHTML = '<strong>Could not load GA4 data.</strong> ' + (D ? 'Showing the last saved copy from ' + new Date(D.fetchedAt).toLocaleString() + '. ' : '') + 'Click Update Data to try again.';
   } finally { btn.disabled = false; }
 }
 
 function setup(){
   const pick=document.getElementById('monthPicker'); const prev=pick.value;
-  pick.innerHTML = D.months.slice().reverse().map(ym=>`<option value="${ym}">${ymLabel(ym)}</option>`).join('');
+  pick.innerHTML = D.months.slice().reverse().map(ym=>`<option value="${ym}">${MON[+ym.slice(4)-1]} ${ym.slice(0,4)}</option>`).join('');
   pick.value = D.months.includes(prev) ? prev : D.months[D.months.length-1];
   render();
 }
 
-const val = (ym, k) => (D.E[ym] && D.E[ym][k] != null) ? D.E[ym][k] : null;
-const isCurrent = ym => ym === D.endDate.slice(0,4)+D.endDate.slice(5,7);
+const ev = (ym,k) => (D.E[ym] && D.E[ym][k] != null) ? D.E[ym][k] : null;
+const isCur = ym => ym === D.endDate.slice(0,4)+D.endDate.slice(5,7);
 function cum(ym){ let s=0; for (const m of D.months){ s+=D.U[m].new; if (m===ym) break; } return s; }
-const regs = ym => val(ym,'successful_account_registration');
-function conv(ym){ const r=regs(ym), p=val(ym,'in_app_purchase'); return (r && p!=null) ? p/r*100 : null; }
+function conv(ym){ const r=ev(ym,'successful_account_registration'), p=ev(ym,'in_app_purchase'); return (r && p!=null) ? p/r*100 : null; }
+function churn(ym){ const u=ev(ym,'app_remove'), a=D.U[ym]&&D.U[ym].active; return (u!=null && a) ? u/a*100 : null; }
 
-function deltaHtml(cur, prev, pp, lowerGood){
-  if (cur==null || prev==null || prev===0) return '<div class="kpi-delta">no prior data</div>';
-  const d = pp ? cur-prev : (cur-prev)/prev*100; const good = lowerGood ? d<=0 : d>=0;
-  return `<div class="kpi-delta ${good?'up':'dn'}">${d>=0?'↑':'↓'} ${Math.abs(d).toFixed(1)}${pp?'pp':'%'} vs prev month</div>`;
+function setDelta(id, cur, prev, higherGood, pp){
+  const el=document.getElementById(id);
+  if (cur==null || prev==null || prev===0) { el.className='kpi-delta'; el.textContent='no prior data'; return; }
+  const d = pp ? cur-prev : (cur-prev)/prev*100; const good = higherGood ? d>=0 : d<=0;
+  el.className='kpi-delta '+(good?'up':'dn'); el.textContent=(d>=0?'↑ ':'↓ ')+Math.abs(d).toFixed(1)+(pp?'pp':'%');
 }
-function card(cls, label, value, delta, src){ return `<div class="kpi ${cls}"><div class="kpi-lbl">${label}</div><div class="kpi-val">${value}</div>${delta}<div class="kpi-src">${src}</div></div>`; }
 
 function render(){
   if (!D) return;
   const ym=document.getElementById('monthPicker').value, i=D.months.indexOf(ym), pv=i>0?D.months[i-1]:null;
-  const cur=isCurrent(ym), day=+D.endDate.slice(8,10);
-  document.getElementById('kpiMonth').textContent = ymFull(ym) + (cur ? ' (1–'+day+', month to date)' : '');
-  document.getElementById('kpiNote').textContent = cur ? 'Deltas compare a partial month with a full month' : '';
+  document.getElementById('kpiMonthLabel').textContent = ymF(ym) + (isCur(ym) ? ' (1–'+(+D.endDate.slice(8,10))+', month to date)' : '');
+  document.getElementById('kpiNote').textContent = isCur(ym) ? 'Changes compare a partial month with the full previous month' : 'Changes vs previous month';
+  document.getElementById('kCum').textContent = fmtK(cum(ym)); setDelta('kCumD', cum(ym), pv&&cum(pv), true);
+  document.getElementById('kNew').textContent = fmtK(D.U[ym].new); setDelta('kNewD', D.U[ym].new, pv&&D.U[pv].new, true);
+  document.getElementById('kMAU').textContent = fmtK(D.U[ym].active); setDelta('kMAUD', D.U[ym].active, pv&&D.U[pv].active, true);
+  document.getElementById('kUni').textContent = fmtK(ev(ym,'app_remove')); setDelta('kUniD', ev(ym,'app_remove'), pv&&ev(pv,'app_remove'), false);
+  document.getElementById('kConv').textContent = pctf(conv(ym)); setDelta('kConvD', conv(ym), pv&&conv(pv), true, true);
+  document.getElementById('kConvSrc').textContent = 'in_app_purchase / registrations' + (D.rev[ym] ? ' · $' + Math.round(D.rev[ym]).toLocaleString('en-US') + ' revenue' : '');
 
-  document.getElementById('kpis').innerHTML = [
-    card('c','Cumulative users', fmtK(cum(ym)), deltaHtml(cum(ym), pv?cum(pv):null), 'GA4 newUsers, running total since Apr 2025'),
-    card('g','New registered users', fmt(regs(ym)), deltaHtml(regs(ym), pv?regs(pv):null), 'successful_account_registration events'),
-    card('c','Monthly active users', fmtK(D.U[ym].active), deltaHtml(D.U[ym].active, pv?D.U[pv].active:null), 'GA4 activeUsers in the month'),
-    card('r','Deleted accounts · churn', '–', '<div class="kpi-delta">not tracked yet</div>', 'No account deletion event in GA4'),
-    card('p','Registered to paid', pctf(conv(ym)), deltaHtml(conv(ym), pv?conv(pv):null, true), 'in_app_purchase / registrations' + (D.rev[ym] ? ' · $' + Math.round(D.rev[ym]).toLocaleString('en-US') + ' revenue' : ''))
-  ].join('');
-
-  // Funnel: bars scaled to the largest step; % is versus the previous step
-  const vals = STEPS.map(s=>val(ym,s.key));
+  const vals = STEPS.map(s=>ev(ym,s.key));
   const max = Math.max(1, ...vals.filter(v=>v!=null));
-  document.getElementById('funnelSub').textContent = ymFull(ym) + ' · event counts, % vs previous step';
-  document.getElementById('funnel').innerHTML = STEPS.map((s,k)=>{ const v=vals[k]; const p=k>0?vals[k-1]:null;
-    const w = v ? Math.max(1.5, v/max*100) : 0;
-    const pct = (k>0 && v!=null && p) ? (v/p*100).toFixed(1)+'%' : '';
-    return `<div class="f-row"><div class="f-lbl">${s.label}<code>${s.src} · ${s.name}</code></div><div class="f-track"><div class="f-bar" style="width:${w}%;background:${s.color}"></div></div><div class="f-num">${v!=null?fmt(v):'<span class="muted">'+(s.key==='installs'&&!D.hasAds?'not connected':'not tracked')+'</span>'}</div><div class="f-pct">${pct}</div></div>`; }).join('');
+  document.getElementById('funnelSub').textContent = ymF(ym) + ' · event counts · % vs previous step';
+  document.getElementById('funnel').innerHTML = STEPS.map((s,k)=>{ const v=vals[k], p=k>0?vals[k-1]:null;
+    const note = s.key==='installs' ? 'not connected' : 'not tracked';
+    return `<div class="funnel-row"><div class="funnel-lbl">${s.label}<span class="funnel-event">${s.ev}</span></div><div class="funnel-track"><div class="funnel-bar" style="width:${v?Math.max(1.5,v/max*100):0}%;background:${s.color}"></div></div><div class="funnel-num">${v!=null?fmt(v):'<span class="muted" style="font-weight:400;font-size:11px">'+note+'</span>'}</div><div class="funnel-pct">${k>0&&v!=null&&p?(v/p*100).toFixed(1)+'%':''}</div></div>`; }).join('');
+  const r=(a,b)=>{ const A=ev(ym,a), B=ev(ym,b); return A&&B!=null ? (B/A*100).toFixed(1)+'%' : '–'; };
+  document.getElementById('funnelStats').innerHTML = [
+    ['First open → Registration','first_open','successful_account_registration','var(--green)'],
+    ['Registration → Trial','successful_account_registration','trial_start','var(--orange)'],
+    ['Trial → Paywall','trial_start','paywall_view','var(--pink)'],
+    ['Paywall → Purchase','paywall_view','in_app_purchase','var(--purple)']
+  ].map(([l,a,b,c])=>`<div class="funnel-stat"><div class="funnel-stat-lbl">${l}</div><div class="funnel-stat-val" style="color:${c}">${r(a,b)}</div></div>`).join('');
 
-  const last = D.months.slice(Math.max(0,i-5), i+1).reverse();
-  document.getElementById('sumBody').innerHTML = last.map(m=>`<tr class="${m===ym?'cur':''}"><td>${ymLabel(m)}${isCurrent(m)?' (MTD)':''}</td>${STEPS.map(s=>`<td>${fmtK(val(m,s.key))}</td>`).join('')}</tr>`).join('');
+  document.getElementById('summaryTbody').innerHTML = D.months.slice().reverse().map(m=>`<tr class="${m===ym?'cur':''}"><td class="${m===ym?'td-b':''}">${ymL(m)}${isCur(m)?' (MTD)':''}${m===ym?' ★':''}</td><td class="td-c">${fmt(cum(m))}</td><td class="td-g">${fmt(ev(m,'successful_account_registration'))}</td><td class="td-c">${fmt(D.U[m].active)}</td></tr>`).join('');
 
-  document.getElementById('monthBody').innerHTML = D.months.slice().reverse().map(m=>`<tr class="${m===ym?'cur':''}"><td>${ymLabel(m)}${isCurrent(m)?' (MTD)':''}</td><td>${fmt(cum(m))}</td><td>${fmt(regs(m))}</td><td>${fmt(D.U[m].active)}</td><td class="muted">not tracked</td><td class="muted">–</td><td>${pctf(conv(m))}</td></tr>`).join('');
-
+  drawCharts(ym);
   document.getElementById('foot').textContent = 'Data fetched ' + new Date(D.fetchedAt).toLocaleString() + ' · GA4 property 412628536 · data to ' + D.endDate;
+}
+
+Chart.defaults.color='rgba(255,255,255,.38)';
+Chart.defaults.font.family='-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif';
+Chart.defaults.font.size=11;
+const GC='rgba(255,255,255,.05)';
+const TT={backgroundColor:'rgba(15,25,38,.95)',borderColor:'rgba(255,255,255,.12)',borderWidth:1,titleColor:'#fff',bodyColor:'rgba(255,255,255,.75)'};
+const charts={};
+function mk(id,cfg){ if(charts[id]) charts[id].destroy(); charts[id]=new Chart(document.getElementById(id),cfg); }
+function drawCharts(ym){
+  const end=D.months.indexOf(ym), ms=D.months.slice(0,end+1), labels=ms.map(ymL);
+  document.getElementById('trendRange').textContent = labels[0] + ' – ' + labels[labels.length-1];
+  const sel = ms.map(m=>m===ym);
+  mk('mauChart',{type:'bar',data:{labels,datasets:[
+    {label:'MAU',data:ms.map(m=>D.U[m].active),backgroundColor:sel.map(s=>s?'#33D9F5':'rgba(0,200,232,.65)'),borderRadius:4,borderSkipped:false},
+    {label:'New Users',type:'line',data:ms.map(m=>D.U[m].new),borderColor:'#22C55E',backgroundColor:'rgba(34,197,94,.08)',borderWidth:2,pointBackgroundColor:'#22C55E',pointRadius:3,tension:.4,fill:true}]},
+    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{position:'top',labels:{boxWidth:12,padding:14}},tooltip:{...TT,callbacks:{label:c=>` ${c.dataset.label}: ${fmt(c.raw)}`}}},scales:{y:{grid:{color:GC},ticks:{callback:v=>fmtK(v)},beginAtZero:true},x:{grid:{display:false}}}}});
+  mk('churnChart',{type:'line',data:{labels,datasets:[{label:'Uninstalls % of MAU',data:ms.map(churn),borderColor:'#EF4444',backgroundColor:'rgba(239,68,68,.08)',borderWidth:2,pointBackgroundColor:'#EF4444',pointRadius:3,tension:.4,fill:true}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{...TT,callbacks:{label:c=>` ${c.raw==null?'–':c.raw.toFixed(1)+'%'} (${fmt(ev(ms[c.dataIndex],'app_remove'))} uninstalls)`}}},scales:{y:{grid:{color:GC},ticks:{callback:v=>v+'%'},beginAtZero:true},x:{grid:{display:false}}}}});
+  mk('cumChart',{type:'line',data:{labels,datasets:[{label:'Cumulative Users',data:ms.map(cum),borderColor:'#00C8E8',backgroundColor:'rgba(0,200,232,.07)',borderWidth:2.5,pointBackgroundColor:'#00C8E8',pointRadius:3,tension:.4,fill:true}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{...TT,callbacks:{label:c=>` Total: ${fmt(c.raw)}`}}},scales:{y:{grid:{color:GC},ticks:{callback:v=>fmtK(v)},beginAtZero:true},x:{grid:{display:false}}}}});
 }
 
 load(false);
