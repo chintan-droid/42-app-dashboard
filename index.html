@@ -3,826 +3,278 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>42 App — Monthly Metrics Dashboard</title>
+<title>42 App · Monthly Metrics</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#0A1520;--bg2:#0E1B28;--card:#112030;--card2:#162840;
-  --cyan:#00C8E8;--cyan2:#33D9F5;--cyan-dim:rgba(0,200,232,.10);--cyan-border:rgba(0,200,232,.20);
-  --green:#22C55E;--green-dim:rgba(34,197,94,.10);--green-border:rgba(34,197,94,.25);
+  --bg:#0A1520;--card:#112030;--card2:#162840;
+  --cyan:#00C8E8;--cyan-dim:rgba(0,200,232,.10);--cyan-border:rgba(0,200,232,.22);
+  --green:#22C55E;--green-dim:rgba(34,197,94,.10);
   --amber:#F59E0B;--amber-dim:rgba(245,158,11,.10);
   --red:#EF4444;--red-dim:rgba(239,68,68,.10);
   --purple:#A78BFA;--purple-dim:rgba(167,139,250,.10);
-  --teal:#14B8A6;--teal-dim:rgba(20,184,166,.10);
-  --orange:#F97316;--orange-dim:rgba(249,115,22,.10);
-  --white:#fff;--t1:rgba(255,255,255,.92);--t2:rgba(255,255,255,.55);--t3:rgba(255,255,255,.30);
-  --border:rgba(255,255,255,.06);--border2:rgba(255,255,255,.11);
-  --radius:14px;
+  --orange:#F97316;--teal:#14B8A6;
+  --white:#fff;--t1:rgba(255,255,255,.92);--t2:rgba(255,255,255,.58);--t3:rgba(255,255,255,.34);
+  --border:rgba(255,255,255,.06);--border2:rgba(255,255,255,.11);--radius:14px;
 }
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--t1);min-height:100vh;line-height:1.5}
-
-/* ── HEADER ───────────────────────────────────────────── */
-.header{background:rgba(10,21,32,.97);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--border2);padding:0 28px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200}
+.header{background:rgba(10,21,32,.97);border-bottom:1px solid var(--border2);padding:10px 28px;min-height:60px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200}
 .hlogo{display:flex;align-items:center;gap:12px}
 .hlogo svg{width:34px;height:34px;flex-shrink:0}
-.htitle{font-size:16px;font-weight:700;color:var(--white);letter-spacing:-.01em}
-.hsub{font-size:11px;color:var(--t3);margin-top:1px}
-.hright{display:flex;align-items:center;gap:10px}
+.htitle{font-size:16px;font-weight:700;color:var(--white)}
+.hsub{font-size:11px;color:var(--t3)}
+.hright{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .badge{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;padding:5px 11px;border-radius:20px;white-space:nowrap}
-.badge-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
-.badge.sample{background:var(--amber-dim);border:1px solid rgba(245,158,11,.28);color:var(--amber)}
-.badge.sample .badge-dot{background:var(--amber);animation:pulse 2.2s ease-in-out infinite}
-.badge.live{background:var(--green-dim);border:1px solid var(--green-border);color:var(--green)}
-.badge.live .badge-dot{background:var(--green);animation:pulse 2.2s ease-in-out infinite}
-.badge.loading{background:var(--cyan-dim);border:1px solid var(--cyan-border);color:var(--cyan)}
-.badge.loading .badge-dot{background:var(--cyan);animation:blink .8s steps(1) infinite}
-.badge.error{background:var(--red-dim);border:1px solid rgba(239,68,68,.28);color:var(--red)}
-.badge.error .badge-dot{background:var(--red)}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
-@keyframes blink{0%{opacity:1}50%{opacity:0}}
-.hbtn{background:var(--cyan);color:#000;border:none;padding:8px 16px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;transition:.15s;white-space:nowrap}
-.hbtn:hover{background:var(--cyan2)}
+.badge-dot{width:6px;height:6px;border-radius:50%}
+.badge.loading{background:var(--cyan-dim);border:1px solid var(--cyan-border);color:var(--cyan)}.badge.loading .badge-dot{background:var(--cyan);animation:blink .8s steps(1) infinite}
+.badge.live{background:var(--green-dim);border:1px solid rgba(34,197,94,.25);color:var(--green)}.badge.live .badge-dot{background:var(--green)}
+.badge.error{background:var(--red-dim);border:1px solid rgba(239,68,68,.28);color:var(--red)}.badge.error .badge-dot{background:var(--red)}
+.badge.cached{background:var(--amber-dim);border:1px solid rgba(245,158,11,.28);color:var(--amber)}.badge.cached .badge-dot{background:var(--amber)}
+@keyframes blink{50%{opacity:0}}
+.hbtn{background:var(--cyan);color:#000;border:none;padding:8px 16px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer}
 .hbtn:disabled{opacity:.5;cursor:not-allowed}
-.hbtn-ghost{background:var(--card2);border:1px solid var(--border2);color:var(--t2);padding:7px 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;transition:.15s;white-space:nowrap}
-.hbtn-ghost:hover{color:var(--t1);border-color:var(--cyan-border)}
 .month-pick{background:var(--card2);border:1px solid var(--border2);color:var(--t1);padding:7px 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;outline:none}
-.month-pick option{background:var(--bg2)}
-
-/* ── LAYOUT ───────────────────────────────────────────── */
 .main{padding:24px 28px;max-width:1440px;margin:0 auto}
-.section-title{font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--t3);margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
-
-/* ── SETTINGS PANEL ───────────────────────────────────── */
-.settings-panel{background:var(--card);border:1px solid var(--cyan-border);border-radius:var(--radius);padding:18px 22px;margin-bottom:20px;display:none}
-.settings-panel.visible{display:block}
-.settings-head{font-size:13px;font-weight:700;color:var(--white);margin-bottom:6px}
-.settings-sub{font-size:11.5px;color:var(--t2);margin-bottom:14px}
-.settings-row{display:flex;gap:8px;align-items:center}
-.settings-input{flex:1;background:var(--bg);border:1px solid var(--border2);border-radius:8px;padding:9px 14px;font-size:12px;color:var(--t1);outline:none;transition:.15s;min-width:0}
-.settings-input:focus{border-color:var(--cyan-border)}
-.settings-input::placeholder{color:var(--t3)}
-.btn-sm{background:var(--card2);border:1px solid var(--border2);color:var(--t2);border-radius:7px;padding:8px 14px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;transition:.15s}
-.btn-sm:hover{color:var(--t1);border-color:var(--cyan-border)}
-
-/* ── BANNERS ──────────────────────────────────────────── */
-.banner{border-radius:10px;padding:12px 18px;display:flex;gap:12px;align-items:flex-start;margin-bottom:20px;font-size:12.5px;line-height:1.6}
-.banner.sample{background:var(--amber-dim);border:1px solid rgba(245,158,11,.22);color:rgba(245,158,11,.85)}
-.banner.live{background:var(--green-dim);border:1px solid var(--green-border);color:rgba(34,197,94,.85);display:none}
-.banner.live.show{display:flex}
-.banner.sample.hide{display:none}
-.banner svg{width:16px;height:16px;flex-shrink:0;margin-top:2px}
-.banner strong{color:inherit;font-weight:700}
-
-/* ── KPI GRID ─────────────────────────────────────────── */
+.section-title{font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--t3);margin:6px 0 14px;padding-bottom:10px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;gap:10px}
+.banner{border-radius:10px;padding:12px 18px;margin-bottom:20px;font-size:12.5px;line-height:1.6;background:var(--cyan-dim);border:1px solid var(--cyan-border);color:var(--t2)}
+.banner.err{background:var(--red-dim);border-color:rgba(239,68,68,.3);color:#fca5a5}
+.banner strong{color:var(--t1)}
 .kpi-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:22px}
 @media(min-width:820px){.kpi-grid{grid-template-columns:repeat(5,1fr)}}
-.kpi{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px 18px;position:relative;overflow:hidden;cursor:default}
-.kpi::after{content:'';position:absolute;top:0;left:0;right:0;height:2.5px;border-radius:14px 14px 0 0}
-.kpi.c::after{background:linear-gradient(90deg,var(--cyan),var(--cyan2))}
-.kpi.g::after{background:linear-gradient(90deg,#16A34A,var(--green))}
-.kpi.r::after{background:var(--red)}
-.kpi.p::after{background:linear-gradient(90deg,#7C3AED,var(--purple))}
-.kpi-icon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;margin-bottom:14px}
-.kpi.c .kpi-icon{background:var(--cyan-dim)} .kpi.g .kpi-icon{background:var(--green-dim)} .kpi.r .kpi-icon{background:var(--red-dim)} .kpi.p .kpi-icon{background:var(--purple-dim)}
-.kpi-icon svg{width:17px;height:17px}
-.kpi.c .kpi-icon svg{color:var(--cyan)} .kpi.g .kpi-icon svg{color:var(--green)} .kpi.r .kpi-icon svg{color:var(--red)} .kpi.p .kpi-icon svg{color:var(--purple)}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;position:relative;overflow:hidden}
+.kpi::after{content:'';position:absolute;top:0;left:0;right:0;height:2.5px}
+.kpi.c::after{background:var(--cyan)}.kpi.g::after{background:var(--green)}.kpi.r::after{background:var(--red)}.kpi.p::after{background:var(--purple)}.kpi.a::after{background:var(--amber)}
 .kpi-lbl{font-size:10.5px;font-weight:600;letter-spacing:.04em;color:var(--t3);margin-bottom:6px;text-transform:uppercase}
-.kpi-val{font-size:30px;font-weight:800;line-height:1;margin-bottom:8px;letter-spacing:-.02em}
-.kpi.c .kpi-val{color:var(--cyan)} .kpi.g .kpi-val{color:var(--green)} .kpi.r .kpi-val{color:var(--red)} .kpi.p .kpi-val{color:var(--purple)}
-.kpi-delta{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px}
-.kpi-delta.up{background:var(--green-dim);color:var(--green)} .kpi-delta.dn{background:var(--red-dim);color:var(--red)} .kpi-delta.na{background:rgba(255,255,255,.05);color:var(--t3)}
-.kpi-src{font-size:10.5px;color:var(--t3);margin-top:5px}
-.live-tag{display:none;align-items:center;gap:4px;font-size:10px;font-weight:700;color:var(--green);margin-top:5px}
-.live-tag::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--green);display:inline-block}
-.live-tag.show{display:inline-flex}
-
-/* ── CHARTS ───────────────────────────────────────────── */
-.charts-top{display:grid;grid-template-columns:1fr;gap:14px;margin-bottom:14px}
-@media(min-width:900px){.charts-top{grid-template-columns:2fr 1fr}}
-.chart-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:22px}
-.chart-hd{font-size:14px;font-weight:700;color:var(--white);margin-bottom:3px}
-.chart-sub{font-size:11.5px;color:var(--t3);margin-bottom:18px}
-.chart-wrap{position:relative}
-.chart-wrap.h220{height:220px} .chart-wrap.h200{height:200px} .chart-wrap.h180{height:180px}
-
-/* ── BOTTOM ROW ───────────────────────────────────────── */
-.bottom-row{display:grid;grid-template-columns:1fr;gap:14px;margin-bottom:14px}
-@media(min-width:900px){.bottom-row{grid-template-columns:1.1fr 0.9fr}}
-
-/* ── FUNNEL ───────────────────────────────────────────── */
-.funnel-row{display:flex;align-items:center;gap:10px;margin-bottom:9px}
-.funnel-lbl{font-size:11.5px;color:var(--t2);min-width:170px;flex-shrink:0}
-.funnel-event{font-size:9.5px;color:var(--t3);display:block;font-family:monospace;margin-top:1px}
-.funnel-track{flex:1;height:24px;background:rgba(255,255,255,.04);border-radius:6px;overflow:hidden}
-.funnel-bar{height:100%;border-radius:6px;display:flex;align-items:center;padding:0 9px;font-size:11px;font-weight:700;color:#000;white-space:nowrap;transition:width .6s cubic-bezier(.25,.46,.45,.94)}
-.fb1{background:linear-gradient(90deg,#0A8FAA,var(--cyan))}
-.fb2{background:linear-gradient(90deg,#0E9E7E,var(--teal))}
-.fb3{background:linear-gradient(90deg,#1A8A4A,var(--green))}
-.fb4{background:linear-gradient(90deg,#B47D0A,var(--amber))}
-.fb5{background:linear-gradient(90deg,#C45210,var(--orange))}
-.fb6{background:linear-gradient(90deg,#7C3AED,var(--purple))}
-.funnel-num{font-size:12px;font-weight:700;color:var(--t1);min-width:60px;text-align:right}
-.funnel-pct{font-size:10.5px;color:var(--t3);min-width:42px;text-align:right}
-.funnel-divider{border:none;border-top:1px dashed var(--border2);margin:8px 0}
-.funnel-stats{display:flex;gap:14px;flex-wrap:wrap;padding-top:14px;margin-top:6px;border-top:1px solid var(--border)}
-.funnel-stat{flex:1;min-width:80px}
-.funnel-stat-lbl{font-size:9.5px;color:var(--t3);margin-bottom:3px;text-transform:uppercase;letter-spacing:.05em}
-.funnel-stat-val{font-size:15px;font-weight:800}
-.live-evt-tag{display:none;font-size:9px;font-weight:700;color:var(--green);margin-left:4px}
-.live-evt-tag::before{content:'• '}
-.live-evt-tag.show{display:inline}
-
-/* ── TABLE ────────────────────────────────────────────── */
+.kpi-val{font-size:28px;font-weight:800;line-height:1.1;margin-bottom:8px}
+.kpi.c .kpi-val{color:var(--cyan)}.kpi.g .kpi-val{color:var(--green)}.kpi.r .kpi-val{color:var(--red)}.kpi.p .kpi-val{color:var(--purple)}.kpi.a .kpi-val{color:var(--amber)}
+.kpi-delta{display:inline-flex;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;background:rgba(255,255,255,.05);color:var(--t3)}
+.kpi-delta.up{background:var(--green-dim);color:var(--green)}.kpi-delta.dn{background:var(--red-dim);color:var(--red)}
+.kpi-src{font-size:10.5px;color:var(--t3);margin-top:6px}
+.grid2{display:grid;grid-template-columns:1fr;gap:14px;margin-bottom:14px}
+@media(min-width:900px){.grid2{grid-template-columns:1.6fr 1fr}.grid2.even{grid-template-columns:1.1fr .9fr}}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:22px;margin-bottom:14px;min-width:0}
+.grid2 .card{margin-bottom:0}
+.card-hd{font-size:14px;font-weight:700;color:var(--white);margin-bottom:3px}
+.card-sub{font-size:11.5px;color:var(--t3);margin-bottom:16px}
+.chart-wrap{position:relative;height:230px}
+.f-row{display:grid;grid-template-columns:170px 1fr 70px 52px;align-items:center;gap:10px;margin-bottom:9px}
+.f-lbl{font-size:12px;color:var(--t2)}
+.f-lbl code{display:block;font-size:9.5px;color:var(--t3)}
+.f-track{height:24px;background:rgba(255,255,255,.04);border-radius:6px;overflow:hidden}
+.f-bar{height:100%;border-radius:6px;transition:width .5s}
+.f-num{font-size:12.5px;font-weight:700;text-align:right;font-variant-numeric:tabular-nums}
+.f-num small{display:block;font-size:9.5px;font-weight:400;color:var(--t3)}
+.f-pct{font-size:10.5px;color:var(--t3);text-align:right}
+@media(max-width:560px){.f-row{grid-template-columns:110px 1fr 60px}.f-pct{display:none}}
+.f-stats{display:flex;gap:14px;flex-wrap:wrap;padding-top:14px;margin-top:8px;border-top:1px solid var(--border)}
+.f-stat{flex:1;min-width:90px}
+.f-stat-lbl{font-size:9.5px;color:var(--t3);text-transform:uppercase;letter-spacing:.05em}
+.f-stat-val{font-size:15px;font-weight:800}
+.tbl-wrap{overflow-x:auto}
 table{width:100%;border-collapse:collapse}
-thead th{font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);padding:8px 12px;text-align:left;border-bottom:1px solid var(--border)}
-tbody td{font-size:13px;color:var(--t2);padding:10px 12px;border-bottom:1px solid var(--border)}
-tbody tr:last-child td{border-bottom:none}
-tbody tr:hover td{background:rgba(255,255,255,.02);color:var(--t1)}
-.td-c{color:var(--cyan)!important;font-weight:700} .td-g{color:var(--green)!important;font-weight:700} .td-r{color:var(--red)!important;font-weight:700} .td-p{color:var(--purple)!important;font-weight:700} .td-b{font-weight:700;color:var(--t1)!important}
-.cur{background:rgba(0,200,232,.04)!important} .cur td{border-bottom-color:rgba(0,200,232,.12)!important}
-.src-table td,.src-table th{font-size:11.5px}
-
-/* ── CUMULATIVE CHART ─────────────────────────────────── */
-.cum-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:22px;margin-bottom:14px}
+th{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--t3);padding:8px 10px;text-align:right;border-bottom:1px solid var(--border);white-space:nowrap}
+td{font-size:12.5px;color:var(--t2);padding:9px 10px;border-bottom:1px solid var(--border);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+tr.cur td{background:rgba(0,200,232,.05);color:var(--t1);font-weight:700}
+.muted{color:var(--t3)}
+.foot{font-size:11px;color:var(--t3);margin:18px 0 30px}
 </style>
 </head>
 <body>
-
-<!-- ═══════════════════════════════════════════════ HEADER -->
 <header class="header">
   <div class="hlogo">
-    <svg viewBox="0 0 34 34" fill="none">
-      <defs><linearGradient id="g1" x1="0" y1="0" x2="34" y2="34" gradientUnits="userSpaceOnUse"><stop stop-color="#00E5FF"/><stop offset="1" stop-color="#0090C8"/></linearGradient></defs>
-      <circle cx="17" cy="17" r="15.5" stroke="url(#g1)" stroke-width="2" fill="rgba(0,200,232,.06)"/>
-      <text x="17" y="22" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="13" font-weight="800" fill="url(#g1)">42</text>
-    </svg>
-    <div>
-      <div class="htitle">42 App — Monthly Metrics</div>
-      <div class="hsub">Detalytics · GA4 Live Data</div>
-    </div>
+    <svg viewBox="0 0 34 34" fill="none"><circle cx="17" cy="17" r="15.5" stroke="#00C8E8" stroke-width="2" fill="rgba(0,200,232,.06)"/><text x="17" y="22" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="13" font-weight="800" fill="#00C8E8">42</text></svg>
+    <div><div class="htitle">42 App · Monthly Metrics</div><div class="hsub">GA4 property detalytics-prod (412628536) · live via Make.com</div></div>
   </div>
   <div class="hright">
-    <div class="badge sample" id="dataBadge"><div class="badge-dot"></div><span id="badgeText">Connecting…</span></div>
-    <button class="hbtn-ghost" id="settingsBtn" onclick="toggleSettings()" title="Webhook settings">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-    </button>
-    <button class="hbtn" id="updateBtn" onclick="fetchGA4()">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-      Update Data
-    </button>
-    <select class="month-pick" id="monthPicker" onchange="onMonthChange()">
-      <option value="18" selected>Oct 2026</option>
-      <option value="17">Sep 2026</option>
-      <option value="16">Aug 2026</option>
-      <option value="15">Jul 2026</option>
-      <option value="14">Jun 2026</option>
-      <option value="13">May 2026</option>
-      <option value="12">Apr 2026</option>
-      <option value="11">Mar 2026</option>
-      <option value="10">Feb 2026</option>
-      <option value="9">Jan 2026</option>
-      <option value="8">Dec 2025</option>
-      <option value="7">Nov 2025</option>
-      <option value="6">Oct 2025</option>
-      <option value="5">Sep 2025</option>
-      <option value="4">Aug 2025</option>
-      <option value="3">Jul 2025</option>
-      <option value="2">Jun 2025</option>
-      <option value="1">May 2025</option>
-      <option value="0">Apr 2025</option>
-    </select>
+    <div class="badge loading" id="badge"><div class="badge-dot"></div><span id="badgeText">Loading GA4…</span></div>
+    <button class="hbtn" id="refreshBtn" onclick="load(true)">Refresh</button>
+    <select class="month-pick" id="monthPicker" onchange="render()"></select>
   </div>
 </header>
 
 <div class="main">
+  <div class="banner" id="banner">All numbers on this page come from GA4. Counts are <strong>users</strong> (unique people who triggered the event) unless marked as events. The current month is month to date.</div>
 
-  <!-- ─── SETTINGS PANEL ──────────────────────────────── -->
-  <div class="settings-panel" id="settingsPanel">
-    <div class="settings-head">Webhook Settings</div>
-    <div class="settings-sub">Make.com webhook URL for GA4 data. The default webhook is pre-configured for detalytics-prod.</div>
-    <div class="settings-row">
-      <input class="settings-input" type="url" id="webhookUrl" placeholder="https://hook.us2.make.com/…">
-      <button class="btn-sm" onclick="saveWebhook()">Save</button>
-      <button class="btn-sm" onclick="resetWebhook()">Reset to default</button>
-    </div>
-  </div>
-
-  <!-- ─── BANNERS ───────────────────────────────────────── -->
-  <div class="banner sample" id="sampleBanner">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
-    <p><strong>Sample / estimated data shown.</strong> Click <strong>Update Data</strong> to pull live metrics from GA4 via Make.com. App event counts (funnel) come from GA4 custom events.</p>
-  </div>
-  <div class="banner live" id="liveBanner">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-    <p><strong>GA4 live data connected.</strong> New Users and MAU come live from GA4 property <strong>detalytics-prod (412628536)</strong> via Make.com. Funnel events, cumulative users, deregistrations and conversion rate still show sample data until those events are added to the Make scenario.</p>
-  </div>
-
-  <!-- ─── KPIS ─────────────────────────────────────────── -->
-  <div class="section-title"><span>Key Metrics — <span id="kpiMonthLabel">October 2026</span></span></div>
+  <div class="section-title"><span>Key metrics · <span id="kpiMonth">…</span></span><span id="kpiNote"></span></div>
   <div class="kpi-grid">
-
-    <div class="kpi c">
-      <div class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
-      <div class="kpi-lbl">Cumulative Users</div>
-      <div class="kpi-val" id="kCum">—</div>
-      <div class="kpi-delta na" id="kCumD">—</div>
-      <div class="kpi-src">GA4 totalUsers · all-time</div>
-    </div>
-
-    <div class="kpi g">
-      <div class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg></div>
-      <div class="kpi-lbl">New Users This Month</div>
-      <div class="kpi-val" id="kNew">—</div>
-      <div class="kpi-delta na" id="kNewD">—</div>
-      <div class="kpi-src">GA4 newUsers · month total</div>
-      <div class="live-tag" id="kNewLive">Live</div>
-    </div>
-
-    <div class="kpi c">
-      <div class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
-      <div class="kpi-lbl">Monthly Active Users</div>
-      <div class="kpi-val" id="kMAU">—</div>
-      <div class="kpi-delta na" id="kMAUD">—</div>
-      <div class="kpi-src">GA4 activeUsers · 30-day window</div>
-      <div class="live-tag" id="kMAULive">Live</div>
-    </div>
-
-    <div class="kpi r">
-      <div class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="22" y1="18" x2="16" y2="18"/></svg></div>
-      <div class="kpi-lbl">Deregistrations</div>
-      <div class="kpi-val" id="kDereg">—</div>
-      <div class="kpi-delta na" id="kDeregD">—</div>
-      <div class="kpi-src">Backend DB · account_deleted event</div>
-    </div>
-
-    <div class="kpi p">
-      <div class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div>
-      <div class="kpi-lbl">Free to Paid Conversion</div>
-      <div class="kpi-val" id="kConv">—</div>
-      <div class="kpi-delta na" id="kConvD">—</div>
-      <div class="kpi-src">in_app_purchase / trial_started</div>
-    </div>
-
+    <div class="kpi c"><div class="kpi-lbl">Cumulative new users</div><div class="kpi-val" id="kCum">…</div><div class="kpi-delta" id="kCumD">…</div><div class="kpi-src">Sum of GA4 newUsers since Oct 2023</div></div>
+    <div class="kpi g"><div class="kpi-lbl">New users</div><div class="kpi-val" id="kNew">…</div><div class="kpi-delta" id="kNewD">…</div><div class="kpi-src">GA4 newUsers (app + web)</div></div>
+    <div class="kpi c"><div class="kpi-lbl">Monthly active users</div><div class="kpi-val" id="kMau">…</div><div class="kpi-delta" id="kMauD">…</div><div class="kpi-src">GA4 activeUsers in the month</div></div>
+    <div class="kpi r"><div class="kpi-lbl">Uninstalls</div><div class="kpi-val" id="kUni">…</div><div class="kpi-delta" id="kUniD">…</div><div class="kpi-src">app_remove users (Android only)</div></div>
+    <div class="kpi p"><div class="kpi-lbl">Trial to purchase</div><div class="kpi-val" id="kConv">…</div><div class="kpi-delta" id="kConvD">…</div><div class="kpi-src" id="kConvSrc">in_app_purchase users / trial_start users</div></div>
   </div>
 
-  <!-- ─── CHARTS TOP ROW ────────────────────────────────── -->
-  <div class="section-title"><span>Trend Analysis</span><span style="font-size:10px;text-transform:none;letter-spacing:0;color:var(--t3)">Apr 2025 – Oct 2026</span></div>
-  <div class="charts-top">
-    <div class="chart-card">
-      <div class="chart-hd">MAU &amp; New Users</div>
-      <div class="chart-sub">Monthly active users (bar) vs new registrations (line) — live values highlighted</div>
-      <div class="chart-wrap h220"><canvas id="mauChart"></canvas></div>
+  <div class="section-title"><span>Trends</span><span id="trendRange"></span></div>
+  <div class="grid2">
+    <div class="card"><div class="card-hd">Monthly active users and new users</div><div class="card-sub">GA4 activeUsers (bars) and newUsers (line)</div><div class="chart-wrap"><canvas id="mauChart"></canvas></div></div>
+    <div class="card"><div class="card-hd">Installs vs uninstalls</div><div class="card-sub">first_open users vs app_remove users</div><div class="chart-wrap"><canvas id="instChart"></canvas></div></div>
+  </div>
+
+  <div class="section-title"><span>App funnel and monthly summary</span></div>
+  <div class="grid2 even">
+    <div class="card">
+      <div class="card-hd">App funnel</div>
+      <div class="card-sub" id="funnelSub">…</div>
+      <div id="funnel"></div>
+      <div class="f-stats" id="fStats"></div>
     </div>
-    <div class="chart-card">
-      <div class="chart-hd">Churn Rate</div>
-      <div class="chart-sub">Monthly deregistrations as % of active base</div>
-      <div class="chart-wrap h220"><canvas id="churnChart"></canvas></div>
+    <div class="card">
+      <div class="card-hd">Monthly summary</div>
+      <div class="card-sub">Last 6 months, users</div>
+      <div class="tbl-wrap"><table><thead><tr><th>Month</th><th>New</th><th>MAU</th><th>Regs</th><th>Trials</th><th>Purch.</th><th>Uninst.</th></tr></thead><tbody id="sumBody"></tbody></table></div>
     </div>
   </div>
 
-  <!-- ─── APP EVENT FUNNEL + SUMMARY ───────────────────── -->
-  <div class="section-title"><span>App Event Funnel &amp; Monthly Summary</span></div>
-  <div class="bottom-row">
-
-    <div class="chart-card">
-      <div class="chart-hd">App Event Funnel <span class="live-evt-tag" id="evtLiveTag">GA4 Live</span></div>
-      <div class="chart-sub" id="funnelSub">October 2026 · GA4 event counts → in-app purchase</div>
-
-      <!-- Row 1: Install -->
-      <div class="funnel-row">
-        <div class="funnel-lbl">Install / App Open<span class="funnel-event">first_open</span></div>
-        <div class="funnel-track"><div class="funnel-bar fb1" id="fb1" style="width:100%"><span id="fb1txt">—</span></div></div>
-        <div class="funnel-num" id="fn1">—</div>
-        <div class="funnel-pct">100%</div>
-      </div>
-
-      <!-- Row 2: First Open -->
-      <div class="funnel-row">
-        <div class="funnel-lbl">First Open (unique)<span class="funnel-event">first_open (users)</span></div>
-        <div class="funnel-track"><div class="funnel-bar fb2" id="fb2" style="width:96%"><span id="fb2txt">—</span></div></div>
-        <div class="funnel-num" id="fn2">—</div>
-        <div class="funnel-pct" id="fp2">96%</div>
-      </div>
-
-      <!-- Row 3: Registration -->
-      <div class="funnel-row">
-        <div class="funnel-lbl">Registration<span class="funnel-event">sign_up / registrations</span></div>
-        <div class="funnel-track"><div class="funnel-bar fb3" id="fb3" style="width:73%"><span id="fb3txt">—</span></div></div>
-        <div class="funnel-num" id="fn3">—</div>
-        <div class="funnel-pct" id="fp3">73%</div>
-      </div>
-
-      <!-- Row 4: Assessment Completed -->
-      <div class="funnel-row">
-        <div class="funnel-lbl">Assessment Completed<span class="funnel-event">assessment_completed</span></div>
-        <div class="funnel-track"><div class="funnel-bar fb4" id="fb4" style="width:47%"><span id="fb4txt">—</span></div></div>
-        <div class="funnel-num" id="fn4">—</div>
-        <div class="funnel-pct" id="fp4">47%</div>
-      </div>
-
-      <!-- Row 5: Trial Started -->
-      <div class="funnel-row">
-        <div class="funnel-lbl">Trial Started<span class="funnel-event">trial_started</span></div>
-        <div class="funnel-track"><div class="funnel-bar fb5" id="fb5" style="width:29%"><span id="fb5txt">—</span></div></div>
-        <div class="funnel-num" id="fn5">—</div>
-        <div class="funnel-pct" id="fp5">29%</div>
-      </div>
-
-      <!-- Row 6: Purchase -->
-      <div class="funnel-row">
-        <div class="funnel-lbl">In-App Purchase<span class="funnel-event">in_app_purchase</span></div>
-        <div class="funnel-track"><div class="funnel-bar fb6" id="fb6" style="width:7%"><span id="fb6txt">—</span></div></div>
-        <div class="funnel-num" id="fn6">—</div>
-        <div class="funnel-pct" id="fp6">6.8%</div>
-      </div>
-
-      <div class="funnel-stats">
-        <div class="funnel-stat"><div class="funnel-stat-lbl">Install → Register</div><div class="funnel-stat-val" style="color:var(--green)" id="fs1">—</div></div>
-        <div class="funnel-stat"><div class="funnel-stat-lbl">Register → Assessment</div><div class="funnel-stat-val" style="color:var(--amber)" id="fs2">—</div></div>
-        <div class="funnel-stat"><div class="funnel-stat-lbl">Assessment → Trial</div><div class="funnel-stat-val" style="color:var(--orange)" id="fs3">—</div></div>
-        <div class="funnel-stat"><div class="funnel-stat-lbl">Trial → Purchase</div><div class="funnel-stat-val" style="color:var(--purple)" id="fs4">—</div></div>
-      </div>
-    </div>
-
-    <div class="chart-card" style="overflow-x:auto">
-      <div class="chart-hd">Monthly Summary</div>
-      <div class="chart-sub">Last 6 months at a glance</div>
-      <table>
-        <thead><tr><th>Month</th><th>New Users</th><th>MAU</th><th>Dereg</th><th>Conv%</th></tr></thead>
-        <tbody id="summaryTbody"></tbody>
-      </table>
-    </div>
-
+  <div class="grid2 even">
+    <div class="card"><div class="card-hd">Cumulative new users</div><div class="card-sub">Running total of GA4 newUsers</div><div class="chart-wrap"><canvas id="cumChart"></canvas></div></div>
+    <div class="card"><div class="card-hd">Funnel events over time</div><div class="card-sub">Users per month · most events were added to the app in Sep 2026</div><div class="chart-wrap"><canvas id="evtChart"></canvas></div></div>
   </div>
 
-  <!-- ─── CUMULATIVE CHART ──────────────────────────────── -->
-  <div class="section-title"><span>User Growth</span></div>
-  <div class="cum-card">
-    <div class="chart-hd">Cumulative Registered Users</div>
-    <div class="chart-sub">All-time total · April 2025 to present</div>
-    <div class="chart-wrap h180"><canvas id="cumChart"></canvas></div>
+  <div class="section-title"><span>GA4 event mapping</span></div>
+  <div class="card tbl-wrap">
+    <table><thead><tr><th>Dashboard step</th><th>GA4 event</th><th>First month seen</th><th>Users (selected month)</th><th>Events (selected month)</th></tr></thead><tbody id="mapBody"></tbody></table>
   </div>
-
-  <!-- ─── EVENT FUNNEL CHART ───────────────────────────── -->
-  <div class="section-title"><span>App Event Trends</span></div>
-  <div class="cum-card">
-    <div class="chart-hd">GA4 Event Counts Over Time</div>
-    <div class="chart-sub">first_open · sign_up · assessment_completed · trial_started · in_app_purchase</div>
-    <div class="chart-wrap h200"><canvas id="evtChart"></canvas></div>
-  </div>
-
-  <!-- ─── DATA SOURCE GUIDE ─────────────────────────────── -->
-  <div class="section-title"><span>GA4 Event Mapping</span></div>
-  <div class="chart-card" style="overflow-x:auto;margin-bottom:32px">
-    <table class="src-table">
-      <thead><tr><th>Dashboard Metric</th><th>GA4 Event / Metric</th><th>Type</th><th>Notes</th></tr></thead>
-      <tbody>
-        <tr><td>Install / App Open</td><td class="td-c">first_open</td><td>GA4 auto-collected</td><td>Fires on first app launch after install</td></tr>
-        <tr><td>First Open (unique)</td><td class="td-c">first_open (users)</td><td>GA4 auto-collected</td><td>Deduplicated unique new users</td></tr>
-        <tr><td>Registration</td><td class="td-g">sign_up / registrations</td><td>GA4 recommended</td><td>User creates account; add method param</td></tr>
-        <tr><td>Assessment Completed</td><td class="td-g">assessment_completed</td><td>Custom event</td><td>Log after onboarding quiz completes</td></tr>
-        <tr><td>Trial Started</td><td class="td-p">trial_started</td><td>Custom event</td><td>Fire when free trial subscription begins</td></tr>
-        <tr><td>In-App Purchase</td><td class="td-p">in_app_purchase</td><td>GA4 auto-collected</td><td>Auto-tracked for Play/App Store purchases</td></tr>
-        <tr><td>New Users (KPI)</td><td class="td-c">newUsers</td><td>GA4 metric</td><td>Dimension: yearMonth for true MAU</td></tr>
-        <tr><td>Monthly Active Users</td><td class="td-c">activeUsers</td><td>GA4 metric</td><td>30-day active window; use yearMonth dim</td></tr>
-        <tr><td>Deregistrations</td><td class="td-r">account_deleted (custom)</td><td>Custom / Backend DB</td><td>Not native in GA4; log server-side event</td></tr>
-      </tbody>
-    </table>
-  </div>
-
-</div><!-- /main -->
+  <div class="foot" id="foot"></div>
+</div>
 
 <script>
-// ══════════════════════════════════════════════════════════
-// MONTHS: Apr 2025 → Oct 2026 (19 months, index 0–18)
-// ══════════════════════════════════════════════════════════
-const MONTHS = [
-  'Apr 25','May 25','Jun 25','Jul 25','Aug 25','Sep 25','Oct 25','Nov 25','Dec 25',
-  'Jan 26','Feb 26','Mar 26','Apr 26','May 26','Jun 26','Jul 26','Aug 26','Sep 26','Oct 26'
+const WEBHOOK = 'https://hook.us2.make.com/3mwqjnu35f913zunagm1w3ib7prjgqgv';
+const START = '2023-10-01';
+const CACHE_KEY = 'ga4_42_cache_v2';
+const STEPS = [
+  {ev:'first_open',label:'First open (install)',color:'#00C8E8'},
+  {ev:'onboarding_start',label:'Onboarding start',color:'#14B8A6'},
+  {ev:'assessment_start',label:'Assessment start',color:'#2DD4BF'},
+  {ev:'assessment_complete',label:'Assessment complete',color:'#F59E0B'},
+  {ev:'successful_account_registration',label:'Registration',color:'#22C55E'},
+  {ev:'trial_start',label:'Trial start',color:'#F97316'},
+  {ev:'paywall_view',label:'Paywall view',color:'#EC4899'},
+  {ev:'in_app_purchase',label:'Purchase',color:'#A78BFA'}
 ];
-const MONTH_FULL = [
-  'April 2025','May 2025','June 2025','July 2025','August 2025','September 2025',
-  'October 2025','November 2025','December 2025',
-  'January 2026','February 2026','March 2026','April 2026','May 2026','June 2026',
-  'July 2026','August 2026','September 2026','October 2026'
-];
-const MONTH_RANGES = [
-  {s:'2025-04-01',e:'2025-04-30'},{s:'2025-05-01',e:'2025-05-31'},
-  {s:'2025-06-01',e:'2025-06-30'},{s:'2025-07-01',e:'2025-07-31'},
-  {s:'2025-08-01',e:'2025-08-31'},{s:'2025-09-01',e:'2025-09-30'},
-  {s:'2025-10-01',e:'2025-10-31'},{s:'2025-11-01',e:'2025-11-30'},
-  {s:'2025-12-01',e:'2025-12-31'},{s:'2026-01-01',e:'2026-01-31'},
-  {s:'2026-02-01',e:'2026-02-28'},{s:'2026-03-01',e:'2026-03-31'},
-  {s:'2026-04-01',e:'2026-04-30'},{s:'2026-05-01',e:'2026-05-31'},
-  {s:'2026-06-01',e:'2026-06-30'},{s:'2026-07-01',e:'2026-07-31'},
-  {s:'2026-08-01',e:'2026-08-31'},{s:'2026-09-01',e:'2026-09-30'},
-  {s:'2026-10-01',e:'2026-10-22'}
-];
+const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+let D = null; // {months:[ym], U:{ym:{active,new,total}}, E:{ym:{ev:{count,users,rev}}}, first:{ev:ym}, fetchedAt, endDate}
+const charts = {};
 
-// ══════════════════════════════════════════════════════════
-// SAMPLE / BASELINE DATA  (overridden by live GA4 fetch)
-// Apr 2025 → Oct 2026 (19 values each)
-// ══════════════════════════════════════════════════════════
-let newData  = [5100, 5900, 6600, 7400, 8100, 8800, 9200, 9700,10200,11200,12400,13100,14200,15000,15800,16400,17100,16600,18400];
-let mauData  = [11900,13300,14900,16700,18400,20000,21600,23100,25000,28000,30500,32800,35200,37100,38600,39800,40500,39200,42100];
-let churnPct = [1.2,  1.3,  1.4,  1.5,  1.6,  1.7,  1.7,  1.8,  1.8,  1.8,  1.6,  2.1,  1.9,  1.7,  1.5,  1.6,  1.4,  1.3,  1.2];
-let convData = [3.8,  4.0,  4.2,  4.4,  4.6,  4.8,  5.0,  5.0,  5.1,  5.2,  5.5,  5.8,  6.0,  6.1,  6.3,  6.5,  6.4,  6.4,  6.8];
-let deregData= [143,  173,  209,  251,  294,  340,  367,  416,  450,  504,  488,  689,  669,  631,  579,  637,  567,  510, 1200];
-let cumData  = [343000,349000,356000,363000,371000,380000,389000,399000,409000,420000,432400,445500,459700,474700,490500,506900,524000,540600,559000];
+const fmt = n => n == null ? '–' : Math.round(n).toLocaleString('en-IN');
+const fmtK = n => n == null ? '–' : (n >= 100000 ? (n/1000).toFixed(0)+'K' : n >= 1000 ? (n/1000).toFixed(1).replace(/\.0$/,'')+'K' : String(Math.round(n)));
+const ymLabel = ym => MON[+ym.slice(4)-1] + ' ' + ym.slice(2,4);
+const ymFull = ym => ['January','February','March','April','May','June','July','August','September','October','November','December'][+ym.slice(4)-1] + ' ' + ym.slice(0,4);
+const iso = d => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 
-// ── App Event Data (6 events, estimated from newData ratios)
-// Will be overridden per-month when GA4 returns event counts
-let installData      = newData.map(n => Math.round(n * 1.05));   // first_open (incl reinstalls)
-let firstOpenData    = newData.map(n => n);                        // first_open unique users = newUsers
-let registrationData = newData.map(n => Math.round(n * 0.73));   // sign_up
-let assessmentData   = registrationData.map(n => Math.round(n * 0.65)); // assessment_completed
-let trialData        = registrationData.map(n => Math.round(n * 0.40)); // trial_started
-let purchaseData     = trialData.map((n,i) => Math.round(n * convData[i]/100 * 2.8)); // in_app_purchase
+function setBadge(cls, text){ const b=document.getElementById('badge'); b.className='badge '+cls; document.getElementById('badgeText').textContent=text; }
 
-// Track which months have live event data
-const liveEventMonths = new Set();
-const liveMetricMonths = new Set();
-
-const DEFAULT_WEBHOOK = 'https://hook.us2.make.com/3mwqjnu35f913zunagm1w3ib7prjgqgv';
-
-// ══════════════════════════════════════════════════════════
-// FORMATTING
-// ══════════════════════════════════════════════════════════
-function fmtK(v)   { return v >= 1000 ? (v/1000).toFixed(1).replace(/\.0$/,'')+'K' : String(Math.round(v)); }
-function fmtPct(v) { return v.toFixed(1)+'%'; }
-function fmtNum(v) { return Math.round(v).toLocaleString(); }
-function pct(num, denom) { return denom > 0 ? (num/denom*100).toFixed(1)+'%' : '—'; }
-
-function idx() { return parseInt(document.getElementById('monthPicker').value); }
-
-// ══════════════════════════════════════════════════════════
-// KPI RENDER
-// ══════════════════════════════════════════════════════════
-function setDelta(id, val, higherGood, isPP) {
-  const el = document.getElementById(id);
-  if (!el || val === null) { if(el){el.className='kpi-delta na'; el.textContent='—';} return; }
-  const n = parseFloat(val);
-  const isUp = n >= 0;
-  const isGood = higherGood ? isUp : !isUp;
-  el.className = 'kpi-delta ' + (isGood ? 'up' : 'dn');
-  el.textContent = (isUp ? '↑ ' : '↓ ') + Math.abs(n).toFixed(1) + (isPP ? 'pp' : '%');
+function parse(raw, endDate){
+  const [r0, r1] = raw.reports || [];
+  if (!r0 || !r1) throw new Error('Unexpected response: ' + JSON.stringify(raw).slice(0,200));
+  const U = {}, E = {}, first = {};
+  (r0.rows||[]).forEach(r => { const ym=r.dimensionValues[0].value, m=r.metricValues.map(x=>+x.value); U[ym]={active:m[0],new:m[1],total:m[2]}; });
+  (r1.rows||[]).forEach(r => { const ym=r.dimensionValues[0].value, ev=r.dimensionValues[1].value, m=r.metricValues.map(x=>+x.value);
+    (E[ym]=E[ym]||{})[ev]={count:m[0],users:m[1],rev:m[2]}; if(!first[ev]||ym<first[ev]) first[ev]=ym; });
+  const months = Object.keys(U).sort();
+  const allTime = r0.totals && r0.totals[0] ? r0.totals[0].metricValues.map(x=>+x.value) : null;
+  return {months, U, E, first, allTime, endDate, fetchedAt: Date.now()};
 }
 
-function renderKPIs() {
-  const i = idx();
-  document.getElementById('kpiMonthLabel').textContent = MONTH_FULL[i];
-  document.getElementById('kCum').textContent = fmtK(cumData[i]);
-  setDelta('kCumD', i>0 ? ((cumData[i]-cumData[i-1])/cumData[i-1]*100).toFixed(1) : null, true);
-  document.getElementById('kNew').textContent = fmtK(newData[i]);
-  setDelta('kNewD', i>0 ? ((newData[i]-newData[i-1])/newData[i-1]*100).toFixed(1) : null, true);
-  document.getElementById('kMAU').textContent = fmtK(mauData[i]);
-  setDelta('kMAUD', i>0 ? ((mauData[i]-mauData[i-1])/mauData[i-1]*100).toFixed(1) : null, true);
-  document.getElementById('kDereg').textContent = fmtK(deregData[i]);
-  setDelta('kDeregD', i>0 ? ((deregData[i]-deregData[i-1])/deregData[i-1]*100).toFixed(1) : null, false);
-  // Conv% = purchase / trial * 100
-  const conv = trialData[i] > 0 ? (purchaseData[i]/trialData[i]*100) : convData[i];
-  document.getElementById('kConv').textContent = fmtPct(conv);
-  setDelta('kConvD', i>0 ? (conv - (trialData[i-1]>0 ? purchaseData[i-1]/trialData[i-1]*100 : convData[i-1])).toFixed(1) : null, true, true);
-  // Live tags
-  const hasLive = liveMetricMonths.has(i);
-  document.getElementById('kNewLive').className = 'live-tag' + (hasLive ? ' show' : '');
-  document.getElementById('kMAULive').className = 'live-tag' + (hasLive ? ' show' : '');
-}
-
-// ══════════════════════════════════════════════════════════
-// FUNNEL RENDER
-// ══════════════════════════════════════════════════════════
-function renderFunnel() {
-  const i = idx();
-  const inst  = installData[i];
-  const fo    = firstOpenData[i];
-  const reg   = registrationData[i];
-  const asmt  = assessmentData[i];
-  const trial = trialData[i];
-  const purch = purchaseData[i];
-  const base  = inst || 1;
-
-  document.getElementById('funnelSub').textContent = MONTH_FULL[i] + ' · GA4 event counts';
-
-  // Row 1: Install (always 100%)
-  _fRow('fb1','fn1','fb1txt','fp1', inst, base, base, null);
-  // Row 2: First Open
-  _fRow('fb2','fn2','fb2txt','fp2', fo, base, inst, 'First open / install');
-  // Row 3: Registration
-  _fRow('fb3','fn3','fb3txt','fp3', reg, base, inst, 'Register / install');
-  // Row 4: Assessment
-  _fRow('fb4','fn4','fb4txt','fp4', asmt, base, inst, 'Assess / install');
-  // Row 5: Trial
-  _fRow('fb5','fn5','fb5txt','fp5', trial, base, inst, 'Trial / install');
-  // Row 6: Purchase
-  _fRow('fb6','fn6','fb6txt','fp6', purch, base, inst, 'Purchase / install');
-
-  // Step stats
-  document.getElementById('fs1').textContent = reg>0 && inst>0 ? (reg/inst*100).toFixed(1)+'%' : '—';
-  document.getElementById('fs2').textContent = asmt>0 && reg>0 ? (asmt/reg*100).toFixed(1)+'%' : '—';
-  document.getElementById('fs3').textContent = trial>0 && asmt>0 ? (trial/asmt*100).toFixed(1)+'%' : '—';
-  document.getElementById('fs4').textContent = purch>0 && trial>0 ? (purch/trial*100).toFixed(1)+'%' : '—';
-
-  // Live tag for events
-  const hasEvt = liveEventMonths.has(i);
-  document.getElementById('evtLiveTag').className = 'live-evt-tag' + (hasEvt ? ' show' : '');
-}
-
-function _fRow(barId, numId, txtId, pctId, val, base, prev, _unused) {
-  const widthPct = base > 0 ? Math.max(1.5, val/base*100) : 1.5;
-  const dispPct  = prev > 0 ? (val/prev*100).toFixed(1)+'%' : '100%';
-  const bar = document.getElementById(barId);
-  if (bar) { bar.style.width = widthPct+'%'; }
-  const txt = document.getElementById(txtId);
-  if (txt) txt.textContent = fmtNum(val);
-  const num = document.getElementById(numId);
-  if (num) num.textContent = fmtNum(val);
-  if (pctId) {
-    const pctEl = document.getElementById(pctId);
-    if (pctEl) pctEl.textContent = barId==='fb1' ? '100%' : dispPct;
-  }
-}
-
-// ══════════════════════════════════════════════════════════
-// TABLE RENDER
-// ══════════════════════════════════════════════════════════
-function renderTable() {
-  const cur = idx();
-  const start = Math.max(0, cur-5);
-  const rows = [];
-  for (let i = cur; i >= start; i--) {
-    const isCur = i === cur;
-    const conv = trialData[i] > 0 ? (purchaseData[i]/trialData[i]*100) : convData[i];
-    rows.push(`<tr class="${isCur?'cur':''}">
-      <td class="${isCur?'td-b':''}">${MONTHS[i]}${isCur?' ★':''}</td>
-      <td class="td-g">${fmtK(newData[i])}</td>
-      <td class="td-c">${fmtK(mauData[i])}</td>
-      <td class="td-r">${fmtK(deregData[i])}</td>
-      <td class="td-p">${conv.toFixed(1)}%</td>
-    </tr>`);
-  }
-  document.getElementById('summaryTbody').innerHTML = rows.join('');
-}
-
-function render() { renderKPIs(); renderFunnel(); renderTable(); updateCharts(); }
-function onMonthChange() { render(); fetchGA4(true); }
-
-// ══════════════════════════════════════════════════════════
-// CHARTS
-// ══════════════════════════════════════════════════════════
-Chart.defaults.color = 'rgba(255,255,255,.38)';
-Chart.defaults.font.family = '-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif';
-Chart.defaults.font.size = 11;
-const GC = 'rgba(255,255,255,.05)';
-let mauChart, churnChart, cumChart, evtChart;
-
-function initCharts() {
-  mauChart = new Chart(document.getElementById('mauChart').getContext('2d'), {
-    type:'bar',
-    data:{ labels:MONTHS, datasets:[
-      { label:'MAU', data:mauData, backgroundColor:'rgba(0,200,232,0.70)', borderRadius:4, borderSkipped:false, yAxisID:'y' },
-      { label:'New Users', type:'line', data:newData, borderColor:'#22C55E', backgroundColor:'rgba(34,197,94,.08)', borderWidth:2, pointBackgroundColor:'#22C55E', pointRadius:3, tension:.4, fill:true, yAxisID:'y' }
-    ]},
-    options:{ responsive:true, maintainAspectRatio:false, interaction:{mode:'index',intersect:false},
-      plugins:{ legend:{position:'top',labels:{boxWidth:12,padding:14}},
-        tooltip:{backgroundColor:'rgba(15,25,38,.95)',borderColor:'rgba(0,200,232,.2)',borderWidth:1,titleColor:'#fff',bodyColor:'rgba(255,255,255,.7)',callbacks:{label:ctx=>` ${ctx.dataset.label}: ${fmtK(ctx.raw)}`}}},
-      scales:{ y:{grid:{color:GC},ticks:{callback:v=>fmtK(v)},beginAtZero:true}, x:{grid:{display:false}} }
-    }
-  });
-
-  churnChart = new Chart(document.getElementById('churnChart').getContext('2d'), {
-    type:'line',
-    data:{ labels:MONTHS, datasets:[{ label:'Churn %', data:churnPct, borderColor:'#EF4444', backgroundColor:'rgba(239,68,68,.08)', borderWidth:2, pointBackgroundColor:'#EF4444', pointRadius:3, tension:.4, fill:true }]},
-    options:{ responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{display:false}, tooltip:{backgroundColor:'rgba(15,25,38,.95)',borderColor:'rgba(239,68,68,.2)',borderWidth:1,titleColor:'#fff',bodyColor:'rgba(255,255,255,.7)',callbacks:{label:ctx=>` Churn: ${ctx.raw}%`}}},
-      scales:{ y:{grid:{color:GC},ticks:{callback:v=>v+'%'},beginAtZero:true}, x:{grid:{display:false}} }
-    }
-  });
-
-  cumChart = new Chart(document.getElementById('cumChart').getContext('2d'), {
-    type:'line',
-    data:{ labels:MONTHS, datasets:[{ label:'Cumulative Users', data:cumData, borderColor:'#00C8E8', backgroundColor:'rgba(0,200,232,.07)', borderWidth:2.5, pointBackgroundColor:'#00C8E8', pointRadius:3, tension:.4, fill:true }]},
-    options:{ responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{display:false}, tooltip:{backgroundColor:'rgba(15,25,38,.95)',borderColor:'rgba(0,200,232,.2)',borderWidth:1,titleColor:'#fff',bodyColor:'rgba(255,255,255,.7)',callbacks:{label:ctx=>` Total: ${fmtK(ctx.raw)}`}}},
-      scales:{ y:{grid:{color:GC},ticks:{callback:v=>fmtK(v)},beginAtZero:false}, x:{grid:{display:false}} }
-    }
-  });
-
-  evtChart = new Chart(document.getElementById('evtChart').getContext('2d'), {
-    type:'line',
-    data:{ labels:MONTHS, datasets:[
-      { label:'first_open',           data:installData,      borderColor:'#00C8E8', backgroundColor:'transparent', borderWidth:2, pointRadius:2.5, tension:.4 },
-      { label:'sign_up',              data:registrationData, borderColor:'#22C55E', backgroundColor:'transparent', borderWidth:2, pointRadius:2.5, tension:.4 },
-      { label:'assessment_completed', data:assessmentData,   borderColor:'#F59E0B', backgroundColor:'transparent', borderWidth:2, pointRadius:2.5, tension:.4 },
-      { label:'trial_started',        data:trialData,        borderColor:'#F97316', backgroundColor:'transparent', borderWidth:2, pointRadius:2.5, tension:.4 },
-      { label:'in_app_purchase',      data:purchaseData,     borderColor:'#A78BFA', backgroundColor:'transparent', borderWidth:2, pointRadius:2.5, tension:.4 }
-    ]},
-    options:{ responsive:true, maintainAspectRatio:false, interaction:{mode:'index',intersect:false},
-      plugins:{ legend:{position:'top',labels:{boxWidth:10,padding:12,font:{size:10}}},
-        tooltip:{backgroundColor:'rgba(15,25,38,.95)',borderColor:'rgba(255,255,255,.1)',borderWidth:1,titleColor:'#fff',bodyColor:'rgba(255,255,255,.7)',callbacks:{label:ctx=>` ${ctx.dataset.label}: ${fmtNum(ctx.raw)}`}}},
-      scales:{ y:{grid:{color:GC},ticks:{callback:v=>fmtK(v)},beginAtZero:true}, x:{grid:{display:false}} }
-    }
-  });
-}
-
-function updateCharts() {
-  if (!mauChart) return;
-  mauChart.data.datasets[0].data = [...mauData];
-  mauChart.data.datasets[1].data = [...newData];
-  mauChart.update();
-  cumChart.data.datasets[0].data = [...cumData];
-  cumChart.update();
-  evtChart.data.datasets[0].data = [...installData];
-  evtChart.data.datasets[1].data = [...registrationData];
-  evtChart.data.datasets[2].data = [...assessmentData];
-  evtChart.data.datasets[3].data = [...trialData];
-  evtChart.data.datasets[4].data = [...purchaseData];
-  evtChart.update();
-}
-
-// ══════════════════════════════════════════════════════════
-// GA4 DATA PARSING HELPERS
-// Handles flat objects, arrays of rows, event arrays
-// ══════════════════════════════════════════════════════════
-function extractMetric(data, keys) {
-  const rows = Array.isArray(data) ? data : [data];
-  // Check for event rows (array with event_name field)
-  for (const row of rows) {
-    if (row.event_name || row.eventName) continue; // skip event rows here
-    for (const k of keys) {
-      const v = row[k];
-      if (v !== undefined && v !== null && v !== '') return parseInt(v) || 0;
-    }
-  }
-  return null;
-}
-
-function sumMetric(data, keys) {
-  const rows = Array.isArray(data) ? data : [data];
-  let total = 0, found = false;
-  for (const row of rows) {
-    if (row.event_name || row.eventName) continue;
-    for (const k of keys) {
-      if (row[k] !== undefined && row[k] !== null && row[k] !== '') {
-        total += parseInt(row[k]) || 0; found = true; break;
-      }
-    }
-  }
-  return found ? total : null;
-}
-
-function extractEvent(data, eventNames) {
-  // Strategy 1: flat keys on a row (event name = key, event_count = value)
-  const rows = Array.isArray(data) ? data : [data];
-  for (const row of rows) {
-    for (const name of eventNames) {
-      if (row[name] !== undefined) return parseInt(row[name]) || 0;
-    }
-  }
-  // Strategy 2: rows with event_name / event_count shape
-  let total = 0, found = false;
-  for (const row of rows) {
-    const eName = row.event_name || row.eventName || row.name;
-    if (eName && eventNames.some(n => n === eName)) {
-      total += parseInt(row.event_count || row.eventCount || row.count || row.value || 0) || 0;
-      found = true;
-    }
-  }
-  return found ? total : null;
-}
-
-// ══════════════════════════════════════════════════════════
-// GA4 LIVE FETCH — fires directly when "Update Data" clicked
-// or on page load (auto-connect)
-// ══════════════════════════════════════════════════════════
-function setBadge(type, text) {
-  document.getElementById('dataBadge').className = 'badge ' + type;
-  document.getElementById('badgeText').textContent = text;
-}
-
-async function fetchGA4(silent) {
-  const urlEl = document.getElementById('webhookUrl');
-  let url = (urlEl.value || '').trim();
-  if (!url) {
-    try { url = localStorage.getItem('ga4_webhook_url') || ''; } catch(e) {}
-  }
-  if (!url) url = DEFAULT_WEBHOOK;
-  urlEl.value = url;
-
-  if (!url.startsWith('https://')) {
-    setBadge('error', 'Invalid webhook URL');
-    return;
-  }
-
-  const btn = document.getElementById('updateBtn');
-  if (btn) { btn.disabled = true; btn.textContent = 'Fetching…'; }
-  setBadge('loading', 'Fetching from GA4…');
-
-  const i = idx();
-  const r = MONTH_RANGES[i];
-
+async function load(force){
+  const btn=document.getElementById('refreshBtn');
+  if (!force) { try { const c = JSON.parse(localStorage.getItem(CACHE_KEY)||'null'); if (c && c.months) { D=c; setup(); setBadge('cached','Cached · refreshing…'); } } catch(e){} }
+  btn.disabled = true; if (!D) setBadge('loading','Loading GA4…');
+  const endDate = iso(new Date());
   try {
-    const resp = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        startDate: r.s,
-        endDate: r.e,
-        month: MONTHS[i],
-        // Tell Make.com scenario which events to return
-        events: ['first_open','sign_up','assessment_completed','trial_started','in_app_purchase'],
-        metrics: ['newUsers','activeUsers','totalUsers']
-      })
-    });
-    if (!resp.ok) throw new Error('HTTP ' + resp.status + ' — ' + resp.statusText);
-    const raw = await resp.json();
-    // Make returns {rows:[daily], totals:{activeUsers,newUsers,totalUsers}}; totals are de-duplicated for the range
-    const data = raw && raw.totals ? raw.totals : (Array.isArray(raw) ? raw : (raw.data || raw.result || raw));
-
-    // ── Core GA4 metrics ──
-    const liveNew   = sumMetric(data, ['newUsers','new_users','newUser','new_user']);
-    const liveMau   = sumMetric(data, ['activeUsers','active_users','activeUser']);
-    const liveTotal = sumMetric(data, ['totalUsers','total_users','totalUser']);
-
-    if (!liveNew && !liveMau) throw new Error(
-      'No recognised metrics in response.\nGot: ' + JSON.stringify(Array.isArray(data)?data[0]:data).substring(0,200)
-    );
-
-    if (liveNew)   { newData[i] = liveNew; }
-    if (liveMau)   { mauData[i] = liveMau; }
-    // totalUsers is users active in the range, not cumulative, so cumData is left as is
-    liveMetricMonths.add(i);
-
-    // ── App Event counts (from GA4 via Make.com) ──
-    const evInstall  = extractEvent(data, ['first_open','firstOpen','install','installs']);
-    const evFirstOp  = liveNew; // first_open unique users ≈ newUsers when yearMonth dim used
-    const evReg      = extractEvent(data, ['sign_up','signUp','registrations','registration','user_registration']);
-    const evAssmt    = extractEvent(data, ['assessment_completed','assessmentCompleted','assessment_complete']);
-    const evTrial    = extractEvent(data, ['trial_started','trialStarted','subscription_started','free_trial_start']);
-    const evPurchase = extractEvent(data, ['in_app_purchase','inAppPurchase','purchase','purchases']);
-
-    if (evInstall  !== null) { installData[i]      = evInstall;  liveEventMonths.add(i); }
-    if (evFirstOp  !== null) { firstOpenData[i]    = evFirstOp; }
-    if (evReg      !== null) { registrationData[i] = evReg;      liveEventMonths.add(i); }
-    if (evAssmt    !== null) { assessmentData[i]   = evAssmt;    liveEventMonths.add(i); }
-    if (evTrial    !== null) { trialData[i]        = evTrial;    liveEventMonths.add(i); }
-    if (evPurchase !== null) { purchaseData[i]     = evPurchase; liveEventMonths.add(i); }
-
-    // ── Save webhook ──
-    try { localStorage.setItem('ga4_webhook_url', url); } catch(e) {}
-
-    render();
-    setBadge('live', 'Live · ' + MONTH_FULL[i]);
-    document.getElementById('sampleBanner').classList.add('hide');
-    document.getElementById('liveBanner').classList.add('show');
-
+    const resp = await fetch(WEBHOOK, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({startDate: START, endDate})});
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    D = parse(await resp.json(), endDate);
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify(D)); } catch(e){}
+    setup();
+    setBadge('live','Live · GA4 to ' + endDate);
+    document.getElementById('banner').className='banner';
   } catch(err) {
-    setBadge('error', 'GA4 fetch failed');
-    console.error('[42 Dashboard] GA4 fetch error:', err);
-    if (!silent) {
-      // Show error in a non-blocking way (status badge already shows error)
-      setTimeout(() => setBadge('sample', 'Sample data'), 4000);
-    }
-  } finally {
-    if (btn) { btn.disabled = false; btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Update Data'; }
-  }
+    console.error(err);
+    setBadge('error','GA4 fetch failed');
+    const b=document.getElementById('banner'); b.className='banner err';
+    b.innerHTML = '<strong>Could not load GA4 data.</strong> ' + (D ? 'Showing the last saved copy from ' + new Date(D.fetchedAt).toLocaleString() + '. ' : '') + 'Click Refresh to try again. (' + String(err.message).replace(/</g,'&lt;') + ')';
+  } finally { btn.disabled = false; }
 }
 
-// ══════════════════════════════════════════════════════════
-// SETTINGS PANEL
-// ══════════════════════════════════════════════════════════
-function toggleSettings() {
-  document.getElementById('settingsPanel').classList.toggle('visible');
-}
-function saveWebhook() {
-  const url = document.getElementById('webhookUrl').value.trim();
-  if (url) { try { localStorage.setItem('ga4_webhook_url', url); } catch(e) {} }
-  document.getElementById('settingsPanel').classList.remove('visible');
-  fetchGA4();
-}
-function resetWebhook() {
-  document.getElementById('webhookUrl').value = DEFAULT_WEBHOOK;
-  try { localStorage.setItem('ga4_webhook_url', DEFAULT_WEBHOOK); } catch(e) {}
+function setup(){
+  const pick=document.getElementById('monthPicker'); const prev=pick.value;
+  pick.innerHTML = D.months.slice().reverse().map(ym=>`<option value="${ym}">${ymLabel(ym)}</option>`).join('');
+  pick.value = D.months.includes(prev) ? prev : D.months[D.months.length-1];
+  render();
 }
 
-// ══════════════════════════════════════════════════════════
-// INIT
-// ══════════════════════════════════════════════════════════
-// Restore saved webhook URL
-(function restoreWebhook() {
-  try {
-    const saved = localStorage.getItem('ga4_webhook_url');
-    if (saved) document.getElementById('webhookUrl').value = saved;
-    else document.getElementById('webhookUrl').value = DEFAULT_WEBHOOK;
-  } catch(e) { document.getElementById('webhookUrl').value = DEFAULT_WEBHOOK; }
-})();
+const ev = (ym, e) => (D.E[ym] && D.E[ym][e]) || null;
+const evU = (ym, e) => { const x=ev(ym,e); return x ? x.users : null; };
+function cumNew(ym){ let s=0; for (const m of D.months){ s+=D.U[m].new; if(m===ym) break; } return s; }
+function isCurrent(ym){ return ym === D.endDate.slice(0,4)+D.endDate.slice(5,7); }
 
-initCharts();
-render(); // Render with sample data immediately
+function delta(id, cur, prev, higherGood, pp){
+  const el=document.getElementById(id);
+  if (cur==null || prev==null || prev===0) { el.className='kpi-delta'; el.textContent='no prior data'; return; }
+  const d = pp ? cur-prev : (cur-prev)/prev*100;
+  const good = higherGood ? d>=0 : d<=0;
+  el.className='kpi-delta ' + (good?'up':'dn');
+  el.textContent = (d>=0?'↑ ':'↓ ') + Math.abs(d).toFixed(1) + (pp?'pp':'%') + ' vs ' + 'prev month';
+}
 
-// Auto-fetch live data on load (silent — no error alert)
-setTimeout(() => fetchGA4(true), 800);
+function render(){
+  if (!D) return;
+  const ym=document.getElementById('monthPicker').value, i=D.months.indexOf(ym), pv=i>0?D.months[i-1]:null;
+  const cur=isCurrent(ym), day=+D.endDate.slice(8,10);
+  document.getElementById('kpiMonth').textContent = ymFull(ym) + (cur ? ' (1–'+day+', month to date)' : '');
+  document.getElementById('kpiNote').textContent = cur ? 'Deltas compare a partial month with a full month' : '';
+  const u=D.U[ym], pu=pv?D.U[pv]:null;
+  document.getElementById('kCum').textContent=fmtK(cumNew(ym)); delta('kCumD', cumNew(ym), pv?cumNew(pv):null, true);
+  document.getElementById('kNew').textContent=fmtK(u.new); delta('kNewD', u.new, pu&&pu.new, true);
+  document.getElementById('kMau').textContent=fmtK(u.active); delta('kMauD', u.active, pu&&pu.active, true);
+  const un=evU(ym,'app_remove'); document.getElementById('kUni').textContent=fmtK(un); delta('kUniD', un, pv&&evU(pv,'app_remove'), false);
+  const conv = (y)=>{ const t=evU(y,'trial_start'), p=evU(y,'in_app_purchase'); return t ? (p||0)/t*100 : null; };
+  const c=conv(ym); document.getElementById('kConv').textContent = c==null ? '–' : c.toFixed(1)+'%'; delta('kConvD', c, pv&&conv(pv), true, true);
+  const pr=ev(ym,'in_app_purchase'); document.getElementById('kConvSrc').textContent = 'purchase users / trial users (purchases include renewals)' + (pr ? ' · revenue $' + pr.rev.toLocaleString('en-US',{maximumFractionDigits:0}) : '');
+
+  // Funnel
+  const base = evU(ym,'first_open') || 0;
+  document.getElementById('funnelSub').textContent = ymFull(ym) + ' · users, % of first opens';
+  document.getElementById('funnel').innerHTML = STEPS.map(s=>{ const x=ev(ym,s.ev); const users=x?x.users:0;
+    const w = base ? Math.max(users? 1.5:0, Math.min(100, users/base*100)) : 0;
+    return `<div class="f-row"><div class="f-lbl">${s.label}<code>${s.ev}</code></div><div class="f-track"><div class="f-bar" style="width:${w}%;background:${s.color}"></div></div><div class="f-num">${x?fmt(users):'<span class="muted">not tracked</span>'}${x?`<small>${fmt(x.count)} events</small>`:''}</div><div class="f-pct">${x&&base?(users/base*100).toFixed(1)+'%':''}</div></div>`; }).join('');
+  const r=(a,b)=>{ const A=evU(ym,a), B=evU(ym,b); return A&&B ? (B/A*100).toFixed(1)+'%' : '–'; };
+  document.getElementById('fStats').innerHTML = [
+    ['Assess start → complete','assessment_start','assessment_complete','var(--amber)'],
+    ['Install → registration','first_open','successful_account_registration','var(--green)'],
+    ['Registration → trial','successful_account_registration','trial_start','var(--orange)'],
+    ['Trial → purchase','trial_start','in_app_purchase','var(--purple)']
+  ].map(([l,a,b,col])=>`<div class="f-stat"><div class="f-stat-lbl">${l}</div><div class="f-stat-val" style="color:${col}">${r(a,b)}</div></div>`).join('');
+
+  // Summary table
+  const last = D.months.slice(Math.max(0,i-5), i+1).reverse();
+  document.getElementById('sumBody').innerHTML = last.map(m=>`<tr class="${m===ym?'cur':''}"><td>${ymLabel(m)}${isCurrent(m)?' (MTD)':''}</td><td>${fmtK(D.U[m].new)}</td><td>${fmtK(D.U[m].active)}</td><td>${fmtK(evU(m,'successful_account_registration'))}</td><td>${fmtK(evU(m,'trial_start'))}</td><td>${fmtK(evU(m,'in_app_purchase'))}</td><td>${fmtK(evU(m,'app_remove'))}</td></tr>`).join('');
+
+  // Mapping table
+  document.getElementById('mapBody').innerHTML = STEPS.concat([{ev:'app_remove',label:'Uninstall'},{ev:'first_visit',label:'Website first visit'},{ev:'assessment_result_view',label:'Assessment result view'},{ev:'notification_opt_in',label:'Notification opt-in'}]).map(s=>{const x=ev(ym,s.ev);
+    return `<tr><td>${s.label}</td><td><code>${s.ev}</code></td><td>${D.first[s.ev]?ymLabel(D.first[s.ev]):'<span class="muted">never</span>'}</td><td>${x?fmt(x.users):'–'}</td><td>${x?fmt(x.count):'–'}</td></tr>`;}).join('');
+
+  drawCharts(ym);
+  document.getElementById('foot').textContent = 'Data fetched ' + new Date(D.fetchedAt).toLocaleString() + ' · GA4 range ' + START + ' to ' + D.endDate + (D.allTime ? ' · all-time GA4 total users ' + fmt(D.allTime[2]) : '');
+}
+
+Chart.defaults.color='rgba(255,255,255,.4)'; Chart.defaults.font.size=11;
+const GC='rgba(255,255,255,.05)';
+function mk(id, cfg){ if (charts[id]) charts[id].destroy(); charts[id]=new Chart(document.getElementById(id), cfg); }
+function drawCharts(ym){
+  const end=D.months.indexOf(ym), from=Math.max(0,end-17), ms=D.months.slice(from,end+1), labels=ms.map(ymLabel);
+  document.getElementById('trendRange').textContent = labels[0] + ' – ' + labels[labels.length-1];
+  const base={responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{position:'top',labels:{boxWidth:10,padding:10}},tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+fmt(c.raw)}}},scales:{y:{grid:{color:GC},ticks:{callback:v=>fmtK(v)},beginAtZero:true},x:{grid:{display:false}}}};
+  mk('mauChart',{type:'bar',data:{labels,datasets:[{label:'MAU',data:ms.map(m=>D.U[m].active),backgroundColor:'rgba(0,200,232,.7)',borderRadius:4},{label:'New users',type:'line',data:ms.map(m=>D.U[m].new),borderColor:'#22C55E',backgroundColor:'#22C55E',tension:.3,pointRadius:2}]},options:base});
+  mk('instChart',{type:'line',data:{labels,datasets:[{label:'Installs (first_open)',data:ms.map(m=>evU(m,'first_open')),borderColor:'#00C8E8',backgroundColor:'#00C8E8',tension:.3,pointRadius:2},{label:'Uninstalls (app_remove)',data:ms.map(m=>evU(m,'app_remove')),borderColor:'#EF4444',backgroundColor:'#EF4444',tension:.3,pointRadius:2}]},options:base});
+  let s=0; const cum=D.months.map(m=>s+=D.U[m].new).slice(from,end+1);
+  mk('cumChart',{type:'line',data:{labels,datasets:[{label:'Cumulative new users',data:cum,borderColor:'#00C8E8',backgroundColor:'rgba(0,200,232,.08)',fill:true,tension:.3,pointRadius:2}]},options:{...base,plugins:{...base.plugins,legend:{display:false}},scales:{...base.scales,y:{...base.scales.y,beginAtZero:false}}}});
+  mk('evtChart',{type:'line',data:{labels,datasets:STEPS.slice(1).map(st=>({label:st.ev,data:ms.map(m=>evU(m,st.ev)),borderColor:st.color,backgroundColor:st.color,tension:.3,pointRadius:2,spanGaps:false}))},options:{...base,plugins:{...base.plugins,legend:{position:'top',labels:{boxWidth:8,padding:8,font:{size:9.5}}}}}});
+}
+
+load(false);
 </script>
 </body>
 </html>
