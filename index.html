@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>42 App · Monthly Metrics</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -42,7 +41,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .banner strong{color:var(--t1)}
 .kpi-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:22px}
 @media(min-width:820px){.kpi-grid{grid-template-columns:repeat(4,1fr)}}
-@media(min-width:1200px){.kpi-grid{grid-template-columns:repeat(7,1fr)}}
+@media(min-width:1200px){.kpi-grid{grid-template-columns:repeat(5,1fr)}}
 .kpi{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;position:relative;overflow:hidden}
 .kpi::after{content:'';position:absolute;top:0;left:0;right:0;height:2.5px}
 .kpi.c::after{background:var(--cyan)}.kpi.g::after{background:var(--green)}.kpi.r::after{background:var(--red)}.kpi.p::after{background:var(--purple)}.kpi.a::after{background:var(--amber)}
@@ -96,12 +95,12 @@ tr.cur td{background:rgba(0,200,232,.05);color:var(--t1);font-weight:700}
 </header>
 
 <div class="main">
-  <div class="banner" id="banner">Every number is an <strong>event count</strong>. Installs come from Google Ads (App Install (Android) conversions); every other step is a GA4 event. The current month is month to date.</div>
+  <div class="banner" id="banner">Funnel steps are <strong>event counts</strong>. Installs come from Google Ads; every other number comes from GA4. The current month is month to date.</div>
 
   <div class="section-title"><span>Key metrics · <span id="kpiMonth">…</span></span><span id="kpiNote"></span></div>
   <div class="kpi-grid" id="kpis"></div>
 
-  <div class="section-title"><span>Funnel and monthly summary</span><span id="trendRange"></span></div>
+  <div class="section-title"><span>Funnel and monthly summary</span></div>
   <div class="grid2 even">
     <div class="card">
       <div class="card-hd">Funnel</div>
@@ -109,20 +108,28 @@ tr.cur td{background:rgba(0,200,232,.05);color:var(--t1);font-weight:700}
       <div id="funnel"></div>
     </div>
     <div class="card">
-      <div class="card-hd">Monthly summary</div>
+      <div class="card-hd">Funnel events by month</div>
       <div class="card-sub">Last 6 months, event counts</div>
       <div class="tbl-wrap"><table><thead><tr><th>Month</th><th>Installs</th><th>First open</th><th>Assess.</th><th>Regs</th><th>Trials</th><th>Paywall</th><th>IAP</th></tr></thead><tbody id="sumBody"></tbody></table></div>
     </div>
   </div>
 
-  <div class="grid2 even">
-    <div class="card"><div class="card-hd">Installs vs first opens</div><div class="card-sub">Google Ads installs and GA4 first_open events per month</div><div class="chart-wrap"><canvas id="instChart"></canvas></div></div>
-    <div class="card"><div class="card-hd">Funnel events per month</div><div class="card-sub">GA4 event counts · most events were added to the app in Sep 2026</div><div class="chart-wrap"><canvas id="evtChart"></canvas></div></div>
+  <div class="section-title"><span>Monthly metrics since Apr 2025</span></div>
+  <div class="card tbl-wrap">
+    <table><thead><tr><th>Month</th><th>Cumulative users</th><th>New registered users</th><th>MAU</th><th>Deleted accounts</th><th>Churn rate</th><th>Registered to paid</th></tr></thead><tbody id="monthBody"></tbody></table>
   </div>
 
-  <div class="section-title"><span>Data sources</span></div>
+  <div class="section-title"><span>Definitions and sources</span></div>
   <div class="card tbl-wrap">
-    <table><thead><tr><th>Step</th><th>Source</th><th>Event / conversion</th><th>First month seen</th><th>Events (selected month)</th></tr></thead><tbody id="mapBody"></tbody></table>
+    <table><thead><tr><th>Metric</th><th>Source</th><th>Definition</th></tr></thead><tbody>
+      <tr><td>Cumulative users</td><td>GA4</td><td style="white-space:normal">Running total of GA4 newUsers (app + web) from April 2025</td></tr>
+      <tr><td>New registered users</td><td>GA4</td><td style="white-space:normal">successful_account_registration events in the month (event tracked since Dec 2025)</td></tr>
+      <tr><td>MAU</td><td>GA4</td><td style="white-space:normal">activeUsers in the calendar month</td></tr>
+      <tr><td>Deleted accounts / churn</td><td>Not tracked</td><td style="white-space:normal">GA4 has no account deletion event. Needs an account_deleted event in the app, or a monthly export from the backend. Churn rate = deleted accounts / MAU</td></tr>
+      <tr><td>Registered to paid</td><td>GA4</td><td style="white-space:normal">in_app_purchase events / successful_account_registration events in the month (purchases include renewals)</td></tr>
+      <tr><td>Installs</td><td>Google Ads</td><td style="white-space:normal">All conversions for "App Install (Android)"</td></tr>
+      <tr><td>Funnel steps</td><td>GA4</td><td style="white-space:normal">Event counts for first_open, assessment_start, successful_account_registration, trial_start, paywall_view, in_app_purchase</td></tr>
+    </tbody></table>
   </div>
   <div class="foot" id="foot"></div>
 </div>
@@ -130,22 +137,23 @@ tr.cur td{background:rgba(0,200,232,.05);color:var(--t1);font-weight:700}
 <script>
 const WEBHOOK = 'https://hook.us2.make.com/3mwqjnu35f913zunagm1w3ib7prjgqgv';
 const START = '2023-10-01';
-const CACHE_KEY = 'ga4_42_cache_v3';
+const CUM_FROM = '202504';
+const CACHE_KEY = 'ga4_42_cache_v4';
 const STEPS = [
-  {key:'installs',label:'Installs',src:'Google Ads',name:'App Install (Android)',color:'#00C8E8',cls:'c'},
-  {key:'first_open',label:'First open',src:'GA4',name:'first_open',color:'#14B8A6',cls:'c'},
-  {key:'assessment_start',label:'Assessment start',src:'GA4',name:'assessment_start',color:'#F59E0B',cls:'a'},
-  {key:'successful_account_registration',label:'Registration',src:'GA4',name:'successful_account_registration',color:'#22C55E',cls:'g'},
-  {key:'trial_start',label:'Trial start',src:'GA4',name:'trial_start',color:'#F97316',cls:'a'},
-  {key:'paywall_view',label:'Paywall view',src:'GA4',name:'paywall_view',color:'#EC4899',cls:'r'},
-  {key:'in_app_purchase',label:'In-app purchases',src:'GA4',name:'in_app_purchase',color:'#A78BFA',cls:'p'}
+  {key:'installs',label:'Installs',src:'Google Ads',name:'App Install (Android)',color:'#00C8E8'},
+  {key:'first_open',label:'First open',src:'GA4',name:'first_open',color:'#14B8A6'},
+  {key:'assessment_start',label:'Assessment start',src:'GA4',name:'assessment_start',color:'#F59E0B'},
+  {key:'successful_account_registration',label:'Registration',src:'GA4',name:'successful_account_registration',color:'#22C55E'},
+  {key:'trial_start',label:'Trial start',src:'GA4',name:'trial_start',color:'#F97316'},
+  {key:'paywall_view',label:'Paywall view',src:'GA4',name:'paywall_view',color:'#EC4899'},
+  {key:'in_app_purchase',label:'In-app purchases',src:'GA4',name:'in_app_purchase',color:'#A78BFA'}
 ];
 const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-let D = null; // {months, E:{ym:{key:count}}, rev:{ym:n}, first:{key:ym}, hasAds, fetchedAt, endDate}
-const charts = {};
+let D = null; // {months, U:{ym:{active,new}}, E:{ym:{key:count}}, rev:{ym:n}, hasAds, fetchedAt, endDate}
 
 const fmt = n => n == null ? '–' : Math.round(n).toLocaleString('en-IN');
 const fmtK = n => n == null ? '–' : (n >= 100000 ? (n/1000).toFixed(0)+'K' : n >= 10000 ? (n/1000).toFixed(1).replace(/\.0$/,'')+'K' : Math.round(n).toLocaleString('en-IN'));
+const pctf = n => n == null ? '–' : n.toFixed(1)+'%';
 const ymLabel = ym => MON[+ym.slice(4)-1] + ' ' + ym.slice(2,4);
 const ymFull = ym => ['January','February','March','April','May','June','July','August','September','October','November','December'][+ym.slice(4)-1] + ' ' + ym.slice(0,4);
 const iso = d => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
@@ -170,16 +178,17 @@ function adsRows(raw){
 
 function parse(raw, endDate){
   const ga = raw.ga4 ? (typeof raw.ga4 === 'string' ? JSON.parse(raw.ga4) : raw.ga4) : raw;
-  const r1 = (ga.reports||[])[1];
-  if (!r1) throw new Error('Unexpected response: ' + JSON.stringify(raw).slice(0,200));
-  const E = {}, rev = {}, first = {};
+  const [r0, r1] = ga.reports || [];
+  if (!r0 || !r1) throw new Error('Unexpected response: ' + JSON.stringify(raw).slice(0,200));
+  const U = {}, E = {}, rev = {};
+  (r0.rows||[]).forEach(r => { const ym=r.dimensionValues[0].value, m=r.metricValues.map(x=>+x.value); U[ym]={active:m[0],new:m[1]}; });
   (r1.rows||[]).forEach(r => { const ym=r.dimensionValues[0].value, ev=r.dimensionValues[1].value, m=r.metricValues.map(x=>+x.value);
-    (E[ym]=E[ym]||{})[ev]=m[0]; if (ev==='in_app_purchase') rev[ym]=m[2]; if(!first[ev]||ym<first[ev]) first[ev]=ym; });
+    (E[ym]=E[ym]||{})[ev]=m[0]; if (ev==='in_app_purchase') rev[ym]=m[2]; });
   const ads = adsRows(raw);
-  if (ads) Object.keys(ads).forEach(ym => { (E[ym]=E[ym]||{}).installs = Math.round(ads[ym]); if (ads[ym] && (!first.installs || ym<first.installs)) first.installs=ym; });
+  if (ads) Object.keys(ads).forEach(ym => { (E[ym]=E[ym]||{}).installs = Math.round(ads[ym]); });
   const curYm = endDate.slice(0,4)+endDate.slice(5,7);
-  const months = Object.keys(E).filter(ym=>ym<=curYm).sort();
-  return {months, E, rev, first, hasAds: !!ads, endDate, fetchedAt: Date.now()};
+  const months = Object.keys(U).filter(ym=>ym>=CUM_FROM && ym<=curYm).sort();
+  return {months, U, E, rev, hasAds: !!ads, endDate, fetchedAt: Date.now()};
 }
 
 async function load(force){
@@ -195,7 +204,7 @@ async function load(force){
     setup();
     setBadge('live','Live · data to ' + endDate);
     const b=document.getElementById('banner'); b.className='banner';
-    if (!D.hasAds) b.innerHTML = 'Every number is an <strong>event count</strong>. <strong>Installs are not connected yet</strong>: the Google Ads step is still being added to Make. Every other step is a GA4 event. The current month is month to date.';
+    if (!D.hasAds) b.innerHTML = 'Funnel steps are <strong>event counts</strong>. <strong>Installs are not connected yet</strong>: the Google Ads step is still being added to Make. Every other number comes from GA4. The current month is month to date.';
   } catch(err) {
     console.error(err);
     setBadge('error','Fetch failed');
@@ -212,13 +221,17 @@ function setup(){
 }
 
 const val = (ym, k) => (D.E[ym] && D.E[ym][k] != null) ? D.E[ym][k] : null;
-function isCurrent(ym){ return ym === D.endDate.slice(0,4)+D.endDate.slice(5,7); }
+const isCurrent = ym => ym === D.endDate.slice(0,4)+D.endDate.slice(5,7);
+function cum(ym){ let s=0; for (const m of D.months){ s+=D.U[m].new; if (m===ym) break; } return s; }
+const regs = ym => val(ym,'successful_account_registration');
+function conv(ym){ const r=regs(ym), p=val(ym,'in_app_purchase'); return (r && p!=null) ? p/r*100 : null; }
 
-function deltaHtml(cur, prev){
+function deltaHtml(cur, prev, pp, lowerGood){
   if (cur==null || prev==null || prev===0) return '<div class="kpi-delta">no prior data</div>';
-  const d=(cur-prev)/prev*100;
-  return `<div class="kpi-delta ${d>=0?'up':'dn'}">${d>=0?'↑':'↓'} ${Math.abs(d).toFixed(1)}% vs prev month</div>`;
+  const d = pp ? cur-prev : (cur-prev)/prev*100; const good = lowerGood ? d<=0 : d>=0;
+  return `<div class="kpi-delta ${good?'up':'dn'}">${d>=0?'↑':'↓'} ${Math.abs(d).toFixed(1)}${pp?'pp':'%'} vs prev month</div>`;
 }
+function card(cls, label, value, delta, src){ return `<div class="kpi ${cls}"><div class="kpi-lbl">${label}</div><div class="kpi-val">${value}</div>${delta}<div class="kpi-src">${src}</div></div>`; }
 
 function render(){
   if (!D) return;
@@ -227,12 +240,13 @@ function render(){
   document.getElementById('kpiMonth').textContent = ymFull(ym) + (cur ? ' (1–'+day+', month to date)' : '');
   document.getElementById('kpiNote').textContent = cur ? 'Deltas compare a partial month with a full month' : '';
 
-  document.getElementById('kpis').innerHTML = STEPS.map(s => {
-    const v = val(ym, s.key);
-    const missing = s.key==='installs' && !D.hasAds;
-    const extra = s.key==='in_app_purchase' && D.rev[ym] ? ' · $' + Math.round(D.rev[ym]).toLocaleString('en-US') + ' revenue' : '';
-    return `<div class="kpi ${s.cls}"><div class="kpi-lbl">${s.label}</div><div class="kpi-val">${missing?'–':fmt(v)}</div>${missing?'<div class="kpi-delta">not connected yet</div>':deltaHtml(v, pv?val(pv,s.key):null)}<div class="kpi-src">${s.src} · ${s.name}${extra}</div></div>`;
-  }).join('');
+  document.getElementById('kpis').innerHTML = [
+    card('c','Cumulative users', fmtK(cum(ym)), deltaHtml(cum(ym), pv?cum(pv):null), 'GA4 newUsers, running total since Apr 2025'),
+    card('g','New registered users', fmt(regs(ym)), deltaHtml(regs(ym), pv?regs(pv):null), 'successful_account_registration events'),
+    card('c','Monthly active users', fmtK(D.U[ym].active), deltaHtml(D.U[ym].active, pv?D.U[pv].active:null), 'GA4 activeUsers in the month'),
+    card('r','Deleted accounts · churn', '–', '<div class="kpi-delta">not tracked yet</div>', 'No account deletion event in GA4'),
+    card('p','Registered to paid', pctf(conv(ym)), deltaHtml(conv(ym), pv?conv(pv):null, true), 'in_app_purchase / registrations' + (D.rev[ym] ? ' · $' + Math.round(D.rev[ym]).toLocaleString('en-US') + ' revenue' : ''))
+  ].join('');
 
   // Funnel: bars scaled to the largest step; % is versus the previous step
   const vals = STEPS.map(s=>val(ym,s.key));
@@ -246,21 +260,9 @@ function render(){
   const last = D.months.slice(Math.max(0,i-5), i+1).reverse();
   document.getElementById('sumBody').innerHTML = last.map(m=>`<tr class="${m===ym?'cur':''}"><td>${ymLabel(m)}${isCurrent(m)?' (MTD)':''}</td>${STEPS.map(s=>`<td>${fmtK(val(m,s.key))}</td>`).join('')}</tr>`).join('');
 
-  document.getElementById('mapBody').innerHTML = STEPS.map(s=>`<tr><td>${s.label}</td><td>${s.src}</td><td><code>${s.name}</code></td><td>${D.first[s.key]?ymLabel(D.first[s.key]):'<span class="muted">–</span>'}</td><td>${fmt(val(ym,s.key))}</td></tr>`).join('');
+  document.getElementById('monthBody').innerHTML = D.months.slice().reverse().map(m=>`<tr class="${m===ym?'cur':''}"><td>${ymLabel(m)}${isCurrent(m)?' (MTD)':''}</td><td>${fmt(cum(m))}</td><td>${fmt(regs(m))}</td><td>${fmt(D.U[m].active)}</td><td class="muted">not tracked</td><td class="muted">–</td><td>${pctf(conv(m))}</td></tr>`).join('');
 
-  drawCharts(ym);
-  document.getElementById('foot').textContent = 'Data fetched ' + new Date(D.fetchedAt).toLocaleString() + ' · range ' + START + ' to ' + D.endDate + ' · Google Ads installs use all conversions for "App Install (Android)"';
-}
-
-Chart.defaults.color='rgba(255,255,255,.4)'; Chart.defaults.font.size=11;
-const GC='rgba(255,255,255,.05)';
-function mk(id, cfg){ if (charts[id]) charts[id].destroy(); charts[id]=new Chart(document.getElementById(id), cfg); }
-function drawCharts(ym){
-  const end=D.months.indexOf(ym), from=Math.max(0,end-17), ms=D.months.slice(from,end+1), labels=ms.map(ymLabel);
-  document.getElementById('trendRange').textContent = 'Charts: ' + labels[0] + ' – ' + labels[labels.length-1];
-  const base={responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{position:'top',labels:{boxWidth:10,padding:10}},tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+fmt(c.raw)}}},scales:{y:{grid:{color:GC},ticks:{callback:v=>fmtK(v)},beginAtZero:true},x:{grid:{display:false}}}};
-  mk('instChart',{type:'bar',data:{labels,datasets:[{label:'Installs (Google Ads)',data:ms.map(m=>val(m,'installs')),backgroundColor:'rgba(0,200,232,.7)',borderRadius:4},{label:'First open (GA4)',type:'line',data:ms.map(m=>val(m,'first_open')),borderColor:'#14B8A6',backgroundColor:'#14B8A6',tension:.3,pointRadius:2}]},options:base});
-  mk('evtChart',{type:'line',data:{labels,datasets:STEPS.slice(2).map(st=>({label:st.label,data:ms.map(m=>val(m,st.key)),borderColor:st.color,backgroundColor:st.color,tension:.3,pointRadius:2}))},options:{...base,plugins:{...base.plugins,legend:{position:'top',labels:{boxWidth:8,padding:8,font:{size:10}}}}}});
+  document.getElementById('foot').textContent = 'Data fetched ' + new Date(D.fetchedAt).toLocaleString() + ' · GA4 property 412628536 · data to ' + D.endDate;
 }
 
 load(false);
