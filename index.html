@@ -41,12 +41,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .banner.err{background:var(--red-dim);border-color:rgba(239,68,68,.3);color:#fca5a5}
 .banner strong{color:var(--t1)}
 .kpi-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:22px}
-@media(min-width:820px){.kpi-grid{grid-template-columns:repeat(5,1fr)}}
+@media(min-width:820px){.kpi-grid{grid-template-columns:repeat(4,1fr)}}
+@media(min-width:1200px){.kpi-grid{grid-template-columns:repeat(7,1fr)}}
 .kpi{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;position:relative;overflow:hidden}
 .kpi::after{content:'';position:absolute;top:0;left:0;right:0;height:2.5px}
 .kpi.c::after{background:var(--cyan)}.kpi.g::after{background:var(--green)}.kpi.r::after{background:var(--red)}.kpi.p::after{background:var(--purple)}.kpi.a::after{background:var(--amber)}
 .kpi-lbl{font-size:10.5px;font-weight:600;letter-spacing:.04em;color:var(--t3);margin-bottom:6px;text-transform:uppercase}
-.kpi-val{font-size:28px;font-weight:800;line-height:1.1;margin-bottom:8px}
+.kpi-val{font-size:26px;font-weight:800;line-height:1.1;margin-bottom:8px}
 .kpi.c .kpi-val{color:var(--cyan)}.kpi.g .kpi-val{color:var(--green)}.kpi.r .kpi-val{color:var(--red)}.kpi.p .kpi-val{color:var(--purple)}.kpi.a .kpi-val{color:var(--amber)}
 .kpi-delta{display:inline-flex;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;background:rgba(255,255,255,.05);color:var(--t3)}
 .kpi-delta.up{background:var(--green-dim);color:var(--green)}.kpi-delta.dn{background:var(--red-dim);color:var(--red)}
@@ -85,7 +86,7 @@ tr.cur td{background:rgba(0,200,232,.05);color:var(--t1);font-weight:700}
 <header class="header">
   <div class="hlogo">
     <svg viewBox="0 0 34 34" fill="none"><circle cx="17" cy="17" r="15.5" stroke="#00C8E8" stroke-width="2" fill="rgba(0,200,232,.06)"/><text x="17" y="22" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="13" font-weight="800" fill="#00C8E8">42</text></svg>
-    <div><div class="htitle">42 App · Monthly Metrics</div><div class="hsub">GA4 property detalytics-prod (412628536) · live via Make.com</div></div>
+    <div><div class="htitle">42 App · Monthly Metrics</div><div class="hsub">GA4 detalytics-prod (412628536) + Google Ads (855-411-4401) · live via Make.com</div></div>
   </div>
   <div class="hright">
     <div class="badge loading" id="badge"><div class="badge-dot"></div><span id="badgeText">Loading GA4…</span></div>
@@ -95,46 +96,33 @@ tr.cur td{background:rgba(0,200,232,.05);color:var(--t1);font-weight:700}
 </header>
 
 <div class="main">
-  <div class="banner" id="banner">All numbers on this page come from GA4. Counts are <strong>users</strong> (unique people who triggered the event) unless marked as events. The current month is month to date.</div>
+  <div class="banner" id="banner">Every number is an <strong>event count</strong>. Installs come from Google Ads (App Install (Android) conversions); every other step is a GA4 event. The current month is month to date.</div>
 
   <div class="section-title"><span>Key metrics · <span id="kpiMonth">…</span></span><span id="kpiNote"></span></div>
-  <div class="kpi-grid">
-    <div class="kpi c"><div class="kpi-lbl">Cumulative new users</div><div class="kpi-val" id="kCum">…</div><div class="kpi-delta" id="kCumD">…</div><div class="kpi-src">Sum of GA4 newUsers since Oct 2023</div></div>
-    <div class="kpi g"><div class="kpi-lbl">New users</div><div class="kpi-val" id="kNew">…</div><div class="kpi-delta" id="kNewD">…</div><div class="kpi-src">GA4 newUsers (app + web)</div></div>
-    <div class="kpi c"><div class="kpi-lbl">Monthly active users</div><div class="kpi-val" id="kMau">…</div><div class="kpi-delta" id="kMauD">…</div><div class="kpi-src">GA4 activeUsers in the month</div></div>
-    <div class="kpi r"><div class="kpi-lbl">Uninstalls</div><div class="kpi-val" id="kUni">…</div><div class="kpi-delta" id="kUniD">…</div><div class="kpi-src">app_remove users (Android only)</div></div>
-    <div class="kpi p"><div class="kpi-lbl">Trial to purchase</div><div class="kpi-val" id="kConv">…</div><div class="kpi-delta" id="kConvD">…</div><div class="kpi-src" id="kConvSrc">in_app_purchase users / trial_start users</div></div>
-  </div>
+  <div class="kpi-grid" id="kpis"></div>
 
-  <div class="section-title"><span>Trends</span><span id="trendRange"></span></div>
-  <div class="grid2">
-    <div class="card"><div class="card-hd">Monthly active users and new users</div><div class="card-sub">GA4 activeUsers (bars) and newUsers (line)</div><div class="chart-wrap"><canvas id="mauChart"></canvas></div></div>
-    <div class="card"><div class="card-hd">Installs vs uninstalls</div><div class="card-sub">first_open users vs app_remove users</div><div class="chart-wrap"><canvas id="instChart"></canvas></div></div>
-  </div>
-
-  <div class="section-title"><span>App funnel and monthly summary</span></div>
+  <div class="section-title"><span>Funnel and monthly summary</span><span id="trendRange"></span></div>
   <div class="grid2 even">
     <div class="card">
-      <div class="card-hd">App funnel</div>
+      <div class="card-hd">Funnel</div>
       <div class="card-sub" id="funnelSub">…</div>
       <div id="funnel"></div>
-      <div class="f-stats" id="fStats"></div>
     </div>
     <div class="card">
       <div class="card-hd">Monthly summary</div>
-      <div class="card-sub">Last 6 months, users</div>
-      <div class="tbl-wrap"><table><thead><tr><th>Month</th><th>New</th><th>MAU</th><th>Regs</th><th>Trials</th><th>Purch.</th><th>Uninst.</th></tr></thead><tbody id="sumBody"></tbody></table></div>
+      <div class="card-sub">Last 6 months, event counts</div>
+      <div class="tbl-wrap"><table><thead><tr><th>Month</th><th>Installs</th><th>First open</th><th>Assess.</th><th>Regs</th><th>Trials</th><th>Paywall</th><th>IAP</th></tr></thead><tbody id="sumBody"></tbody></table></div>
     </div>
   </div>
 
   <div class="grid2 even">
-    <div class="card"><div class="card-hd">Cumulative new users</div><div class="card-sub">Running total of GA4 newUsers</div><div class="chart-wrap"><canvas id="cumChart"></canvas></div></div>
-    <div class="card"><div class="card-hd">Funnel events over time</div><div class="card-sub">Users per month · most events were added to the app in Sep 2026</div><div class="chart-wrap"><canvas id="evtChart"></canvas></div></div>
+    <div class="card"><div class="card-hd">Installs vs first opens</div><div class="card-sub">Google Ads installs and GA4 first_open events per month</div><div class="chart-wrap"><canvas id="instChart"></canvas></div></div>
+    <div class="card"><div class="card-hd">Funnel events per month</div><div class="card-sub">GA4 event counts · most events were added to the app in Sep 2026</div><div class="chart-wrap"><canvas id="evtChart"></canvas></div></div>
   </div>
 
-  <div class="section-title"><span>GA4 event mapping</span></div>
+  <div class="section-title"><span>Data sources</span></div>
   <div class="card tbl-wrap">
-    <table><thead><tr><th>Dashboard step</th><th>GA4 event</th><th>First month seen</th><th>Users (selected month)</th><th>Events (selected month)</th></tr></thead><tbody id="mapBody"></tbody></table>
+    <table><thead><tr><th>Step</th><th>Source</th><th>Event / conversion</th><th>First month seen</th><th>Events (selected month)</th></tr></thead><tbody id="mapBody"></tbody></table>
   </div>
   <div class="foot" id="foot"></div>
 </div>
@@ -142,39 +130,56 @@ tr.cur td{background:rgba(0,200,232,.05);color:var(--t1);font-weight:700}
 <script>
 const WEBHOOK = 'https://hook.us2.make.com/3mwqjnu35f913zunagm1w3ib7prjgqgv';
 const START = '2023-10-01';
-const CACHE_KEY = 'ga4_42_cache_v2';
+const CACHE_KEY = 'ga4_42_cache_v3';
 const STEPS = [
-  {ev:'first_open',label:'First open (install)',color:'#00C8E8'},
-  {ev:'onboarding_start',label:'Onboarding start',color:'#14B8A6'},
-  {ev:'assessment_start',label:'Assessment start',color:'#2DD4BF'},
-  {ev:'assessment_complete',label:'Assessment complete',color:'#F59E0B'},
-  {ev:'successful_account_registration',label:'Registration',color:'#22C55E'},
-  {ev:'trial_start',label:'Trial start',color:'#F97316'},
-  {ev:'paywall_view',label:'Paywall view',color:'#EC4899'},
-  {ev:'in_app_purchase',label:'Purchase',color:'#A78BFA'}
+  {key:'installs',label:'Installs',src:'Google Ads',name:'App Install (Android)',color:'#00C8E8',cls:'c'},
+  {key:'first_open',label:'First open',src:'GA4',name:'first_open',color:'#14B8A6',cls:'c'},
+  {key:'assessment_start',label:'Assessment start',src:'GA4',name:'assessment_start',color:'#F59E0B',cls:'a'},
+  {key:'successful_account_registration',label:'Registration',src:'GA4',name:'successful_account_registration',color:'#22C55E',cls:'g'},
+  {key:'trial_start',label:'Trial start',src:'GA4',name:'trial_start',color:'#F97316',cls:'a'},
+  {key:'paywall_view',label:'Paywall view',src:'GA4',name:'paywall_view',color:'#EC4899',cls:'r'},
+  {key:'in_app_purchase',label:'In-app purchases',src:'GA4',name:'in_app_purchase',color:'#A78BFA',cls:'p'}
 ];
 const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-let D = null; // {months:[ym], U:{ym:{active,new,total}}, E:{ym:{ev:{count,users,rev}}}, first:{ev:ym}, fetchedAt, endDate}
+let D = null; // {months, E:{ym:{key:count}}, rev:{ym:n}, first:{key:ym}, hasAds, fetchedAt, endDate}
 const charts = {};
 
 const fmt = n => n == null ? '–' : Math.round(n).toLocaleString('en-IN');
-const fmtK = n => n == null ? '–' : (n >= 100000 ? (n/1000).toFixed(0)+'K' : n >= 1000 ? (n/1000).toFixed(1).replace(/\.0$/,'')+'K' : String(Math.round(n)));
+const fmtK = n => n == null ? '–' : (n >= 100000 ? (n/1000).toFixed(0)+'K' : n >= 10000 ? (n/1000).toFixed(1).replace(/\.0$/,'')+'K' : Math.round(n).toLocaleString('en-IN'));
 const ymLabel = ym => MON[+ym.slice(4)-1] + ' ' + ym.slice(2,4);
 const ymFull = ym => ['January','February','March','April','May','June','July','August','September','October','November','December'][+ym.slice(4)-1] + ' ' + ym.slice(0,4);
 const iso = d => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 
 function setBadge(cls, text){ const b=document.getElementById('badge'); b.className='badge '+cls; document.getElementById('badgeText').textContent=text; }
 
+// Google Ads rows arrive from Make as flat objects, e.g. {segments_month:'2026-10-01', metrics_allConversions:2076}
+function adsRows(raw){
+  let a = raw.ads; if (a == null) return null;
+  if (typeof a === 'string') { try { a = JSON.parse(a.trim().startsWith('[') ? a : '['+a+']'); } catch(e) { return null; } }
+  if (!Array.isArray(a)) a = a.results || a.array || [a];
+  const out = {};
+  a.forEach(r => {
+    const flat = {}; (function walk(o,p){ for (const k in o) { const v=o[k]; if (v && typeof v==='object') walk(v,p+k+'_'); else flat[(p+k).toLowerCase()]=v; } })(r,'');
+    const mk = Object.keys(flat).find(k=>k.includes('month')); const ck = Object.keys(flat).find(k=>k.includes('allconversions'));
+    if (!mk || !ck) return;
+    const ym = String(flat[mk]).slice(0,7).replace('-','');
+    out[ym] = (out[ym]||0) + (+flat[ck]||0);
+  });
+  return out;
+}
+
 function parse(raw, endDate){
-  const [r0, r1] = raw.reports || [];
-  if (!r0 || !r1) throw new Error('Unexpected response: ' + JSON.stringify(raw).slice(0,200));
-  const U = {}, E = {}, first = {};
-  (r0.rows||[]).forEach(r => { const ym=r.dimensionValues[0].value, m=r.metricValues.map(x=>+x.value); U[ym]={active:m[0],new:m[1],total:m[2]}; });
+  const ga = raw.ga4 ? (typeof raw.ga4 === 'string' ? JSON.parse(raw.ga4) : raw.ga4) : raw;
+  const r1 = (ga.reports||[])[1];
+  if (!r1) throw new Error('Unexpected response: ' + JSON.stringify(raw).slice(0,200));
+  const E = {}, rev = {}, first = {};
   (r1.rows||[]).forEach(r => { const ym=r.dimensionValues[0].value, ev=r.dimensionValues[1].value, m=r.metricValues.map(x=>+x.value);
-    (E[ym]=E[ym]||{})[ev]={count:m[0],users:m[1],rev:m[2]}; if(!first[ev]||ym<first[ev]) first[ev]=ym; });
-  const months = Object.keys(U).sort();
-  const allTime = r0.totals && r0.totals[0] ? r0.totals[0].metricValues.map(x=>+x.value) : null;
-  return {months, U, E, first, allTime, endDate, fetchedAt: Date.now()};
+    (E[ym]=E[ym]||{})[ev]=m[0]; if (ev==='in_app_purchase') rev[ym]=m[2]; if(!first[ev]||ym<first[ev]) first[ev]=ym; });
+  const ads = adsRows(raw);
+  if (ads) Object.keys(ads).forEach(ym => { (E[ym]=E[ym]||{}).installs = Math.round(ads[ym]); if (ads[ym] && (!first.installs || ym<first.installs)) first.installs=ym; });
+  const curYm = endDate.slice(0,4)+endDate.slice(5,7);
+  const months = Object.keys(E).filter(ym=>ym<=curYm).sort();
+  return {months, E, rev, first, hasAds: !!ads, endDate, fetchedAt: Date.now()};
 }
 
 async function load(force){
@@ -188,13 +193,14 @@ async function load(force){
     D = parse(await resp.json(), endDate);
     try { localStorage.setItem(CACHE_KEY, JSON.stringify(D)); } catch(e){}
     setup();
-    setBadge('live','Live · GA4 to ' + endDate);
-    document.getElementById('banner').className='banner';
+    setBadge('live','Live · data to ' + endDate);
+    const b=document.getElementById('banner'); b.className='banner';
+    if (!D.hasAds) b.innerHTML = 'Every number is an <strong>event count</strong>. <strong>Installs are not connected yet</strong>: the Google Ads step is still being added to Make. Every other step is a GA4 event. The current month is month to date.';
   } catch(err) {
     console.error(err);
-    setBadge('error','GA4 fetch failed');
+    setBadge('error','Fetch failed');
     const b=document.getElementById('banner'); b.className='banner err';
-    b.innerHTML = '<strong>Could not load GA4 data.</strong> ' + (D ? 'Showing the last saved copy from ' + new Date(D.fetchedAt).toLocaleString() + '. ' : '') + 'Click Refresh to try again. (' + String(err.message).replace(/</g,'&lt;') + ')';
+    b.innerHTML = '<strong>Could not load data.</strong> ' + (D ? 'Showing the last saved copy from ' + new Date(D.fetchedAt).toLocaleString() + '. ' : '') + 'Click Refresh to try again. (' + String(err.message).replace(/</g,'&lt;') + ')';
   } finally { btn.disabled = false; }
 }
 
@@ -205,18 +211,13 @@ function setup(){
   render();
 }
 
-const ev = (ym, e) => (D.E[ym] && D.E[ym][e]) || null;
-const evU = (ym, e) => { const x=ev(ym,e); return x ? x.users : null; };
-function cumNew(ym){ let s=0; for (const m of D.months){ s+=D.U[m].new; if(m===ym) break; } return s; }
+const val = (ym, k) => (D.E[ym] && D.E[ym][k] != null) ? D.E[ym][k] : null;
 function isCurrent(ym){ return ym === D.endDate.slice(0,4)+D.endDate.slice(5,7); }
 
-function delta(id, cur, prev, higherGood, pp){
-  const el=document.getElementById(id);
-  if (cur==null || prev==null || prev===0) { el.className='kpi-delta'; el.textContent='no prior data'; return; }
-  const d = pp ? cur-prev : (cur-prev)/prev*100;
-  const good = higherGood ? d>=0 : d<=0;
-  el.className='kpi-delta ' + (good?'up':'dn');
-  el.textContent = (d>=0?'↑ ':'↓ ') + Math.abs(d).toFixed(1) + (pp?'pp':'%') + ' vs ' + 'prev month';
+function deltaHtml(cur, prev){
+  if (cur==null || prev==null || prev===0) return '<div class="kpi-delta">no prior data</div>';
+  const d=(cur-prev)/prev*100;
+  return `<div class="kpi-delta ${d>=0?'up':'dn'}">${d>=0?'↑':'↓'} ${Math.abs(d).toFixed(1)}% vs prev month</div>`;
 }
 
 function render(){
@@ -225,39 +226,30 @@ function render(){
   const cur=isCurrent(ym), day=+D.endDate.slice(8,10);
   document.getElementById('kpiMonth').textContent = ymFull(ym) + (cur ? ' (1–'+day+', month to date)' : '');
   document.getElementById('kpiNote').textContent = cur ? 'Deltas compare a partial month with a full month' : '';
-  const u=D.U[ym], pu=pv?D.U[pv]:null;
-  document.getElementById('kCum').textContent=fmtK(cumNew(ym)); delta('kCumD', cumNew(ym), pv?cumNew(pv):null, true);
-  document.getElementById('kNew').textContent=fmtK(u.new); delta('kNewD', u.new, pu&&pu.new, true);
-  document.getElementById('kMau').textContent=fmtK(u.active); delta('kMauD', u.active, pu&&pu.active, true);
-  const un=evU(ym,'app_remove'); document.getElementById('kUni').textContent=fmtK(un); delta('kUniD', un, pv&&evU(pv,'app_remove'), false);
-  const conv = (y)=>{ const t=evU(y,'trial_start'), p=evU(y,'in_app_purchase'); return t ? (p||0)/t*100 : null; };
-  const c=conv(ym); document.getElementById('kConv').textContent = c==null ? '–' : c.toFixed(1)+'%'; delta('kConvD', c, pv&&conv(pv), true, true);
-  const pr=ev(ym,'in_app_purchase'); document.getElementById('kConvSrc').textContent = 'purchase users / trial users (purchases include renewals)' + (pr ? ' · revenue $' + pr.rev.toLocaleString('en-US',{maximumFractionDigits:0}) : '');
 
-  // Funnel
-  const base = evU(ym,'first_open') || 0;
-  document.getElementById('funnelSub').textContent = ymFull(ym) + ' · users, % of first opens';
-  document.getElementById('funnel').innerHTML = STEPS.map(s=>{ const x=ev(ym,s.ev); const users=x?x.users:0;
-    const w = base ? Math.max(users? 1.5:0, Math.min(100, users/base*100)) : 0;
-    return `<div class="f-row"><div class="f-lbl">${s.label}<code>${s.ev}</code></div><div class="f-track"><div class="f-bar" style="width:${w}%;background:${s.color}"></div></div><div class="f-num">${x?fmt(users):'<span class="muted">not tracked</span>'}${x?`<small>${fmt(x.count)} events</small>`:''}</div><div class="f-pct">${x&&base?(users/base*100).toFixed(1)+'%':''}</div></div>`; }).join('');
-  const r=(a,b)=>{ const A=evU(ym,a), B=evU(ym,b); return A&&B ? (B/A*100).toFixed(1)+'%' : '–'; };
-  document.getElementById('fStats').innerHTML = [
-    ['Assess start → complete','assessment_start','assessment_complete','var(--amber)'],
-    ['Install → registration','first_open','successful_account_registration','var(--green)'],
-    ['Registration → trial','successful_account_registration','trial_start','var(--orange)'],
-    ['Trial → purchase','trial_start','in_app_purchase','var(--purple)']
-  ].map(([l,a,b,col])=>`<div class="f-stat"><div class="f-stat-lbl">${l}</div><div class="f-stat-val" style="color:${col}">${r(a,b)}</div></div>`).join('');
+  document.getElementById('kpis').innerHTML = STEPS.map(s => {
+    const v = val(ym, s.key);
+    const missing = s.key==='installs' && !D.hasAds;
+    const extra = s.key==='in_app_purchase' && D.rev[ym] ? ' · $' + Math.round(D.rev[ym]).toLocaleString('en-US') + ' revenue' : '';
+    return `<div class="kpi ${s.cls}"><div class="kpi-lbl">${s.label}</div><div class="kpi-val">${missing?'–':fmt(v)}</div>${missing?'<div class="kpi-delta">not connected yet</div>':deltaHtml(v, pv?val(pv,s.key):null)}<div class="kpi-src">${s.src} · ${s.name}${extra}</div></div>`;
+  }).join('');
 
-  // Summary table
+  // Funnel: bars scaled to the largest step; % is versus the previous step
+  const vals = STEPS.map(s=>val(ym,s.key));
+  const max = Math.max(1, ...vals.filter(v=>v!=null));
+  document.getElementById('funnelSub').textContent = ymFull(ym) + ' · event counts, % vs previous step';
+  document.getElementById('funnel').innerHTML = STEPS.map((s,k)=>{ const v=vals[k]; const p=k>0?vals[k-1]:null;
+    const w = v ? Math.max(1.5, v/max*100) : 0;
+    const pct = (k>0 && v!=null && p) ? (v/p*100).toFixed(1)+'%' : '';
+    return `<div class="f-row"><div class="f-lbl">${s.label}<code>${s.src} · ${s.name}</code></div><div class="f-track"><div class="f-bar" style="width:${w}%;background:${s.color}"></div></div><div class="f-num">${v!=null?fmt(v):'<span class="muted">'+(s.key==='installs'&&!D.hasAds?'not connected':'not tracked')+'</span>'}</div><div class="f-pct">${pct}</div></div>`; }).join('');
+
   const last = D.months.slice(Math.max(0,i-5), i+1).reverse();
-  document.getElementById('sumBody').innerHTML = last.map(m=>`<tr class="${m===ym?'cur':''}"><td>${ymLabel(m)}${isCurrent(m)?' (MTD)':''}</td><td>${fmtK(D.U[m].new)}</td><td>${fmtK(D.U[m].active)}</td><td>${fmtK(evU(m,'successful_account_registration'))}</td><td>${fmtK(evU(m,'trial_start'))}</td><td>${fmtK(evU(m,'in_app_purchase'))}</td><td>${fmtK(evU(m,'app_remove'))}</td></tr>`).join('');
+  document.getElementById('sumBody').innerHTML = last.map(m=>`<tr class="${m===ym?'cur':''}"><td>${ymLabel(m)}${isCurrent(m)?' (MTD)':''}</td>${STEPS.map(s=>`<td>${fmtK(val(m,s.key))}</td>`).join('')}</tr>`).join('');
 
-  // Mapping table
-  document.getElementById('mapBody').innerHTML = STEPS.concat([{ev:'app_remove',label:'Uninstall'},{ev:'first_visit',label:'Website first visit'},{ev:'assessment_result_view',label:'Assessment result view'},{ev:'notification_opt_in',label:'Notification opt-in'}]).map(s=>{const x=ev(ym,s.ev);
-    return `<tr><td>${s.label}</td><td><code>${s.ev}</code></td><td>${D.first[s.ev]?ymLabel(D.first[s.ev]):'<span class="muted">never</span>'}</td><td>${x?fmt(x.users):'–'}</td><td>${x?fmt(x.count):'–'}</td></tr>`;}).join('');
+  document.getElementById('mapBody').innerHTML = STEPS.map(s=>`<tr><td>${s.label}</td><td>${s.src}</td><td><code>${s.name}</code></td><td>${D.first[s.key]?ymLabel(D.first[s.key]):'<span class="muted">–</span>'}</td><td>${fmt(val(ym,s.key))}</td></tr>`).join('');
 
   drawCharts(ym);
-  document.getElementById('foot').textContent = 'Data fetched ' + new Date(D.fetchedAt).toLocaleString() + ' · GA4 range ' + START + ' to ' + D.endDate + (D.allTime ? ' · all-time GA4 total users ' + fmt(D.allTime[2]) : '');
+  document.getElementById('foot').textContent = 'Data fetched ' + new Date(D.fetchedAt).toLocaleString() + ' · range ' + START + ' to ' + D.endDate + ' · Google Ads installs use all conversions for "App Install (Android)"';
 }
 
 Chart.defaults.color='rgba(255,255,255,.4)'; Chart.defaults.font.size=11;
@@ -265,13 +257,10 @@ const GC='rgba(255,255,255,.05)';
 function mk(id, cfg){ if (charts[id]) charts[id].destroy(); charts[id]=new Chart(document.getElementById(id), cfg); }
 function drawCharts(ym){
   const end=D.months.indexOf(ym), from=Math.max(0,end-17), ms=D.months.slice(from,end+1), labels=ms.map(ymLabel);
-  document.getElementById('trendRange').textContent = labels[0] + ' – ' + labels[labels.length-1];
+  document.getElementById('trendRange').textContent = 'Charts: ' + labels[0] + ' – ' + labels[labels.length-1];
   const base={responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{position:'top',labels:{boxWidth:10,padding:10}},tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+fmt(c.raw)}}},scales:{y:{grid:{color:GC},ticks:{callback:v=>fmtK(v)},beginAtZero:true},x:{grid:{display:false}}}};
-  mk('mauChart',{type:'bar',data:{labels,datasets:[{label:'MAU',data:ms.map(m=>D.U[m].active),backgroundColor:'rgba(0,200,232,.7)',borderRadius:4},{label:'New users',type:'line',data:ms.map(m=>D.U[m].new),borderColor:'#22C55E',backgroundColor:'#22C55E',tension:.3,pointRadius:2}]},options:base});
-  mk('instChart',{type:'line',data:{labels,datasets:[{label:'Installs (first_open)',data:ms.map(m=>evU(m,'first_open')),borderColor:'#00C8E8',backgroundColor:'#00C8E8',tension:.3,pointRadius:2},{label:'Uninstalls (app_remove)',data:ms.map(m=>evU(m,'app_remove')),borderColor:'#EF4444',backgroundColor:'#EF4444',tension:.3,pointRadius:2}]},options:base});
-  let s=0; const cum=D.months.map(m=>s+=D.U[m].new).slice(from,end+1);
-  mk('cumChart',{type:'line',data:{labels,datasets:[{label:'Cumulative new users',data:cum,borderColor:'#00C8E8',backgroundColor:'rgba(0,200,232,.08)',fill:true,tension:.3,pointRadius:2}]},options:{...base,plugins:{...base.plugins,legend:{display:false}},scales:{...base.scales,y:{...base.scales.y,beginAtZero:false}}}});
-  mk('evtChart',{type:'line',data:{labels,datasets:STEPS.slice(1).map(st=>({label:st.ev,data:ms.map(m=>evU(m,st.ev)),borderColor:st.color,backgroundColor:st.color,tension:.3,pointRadius:2,spanGaps:false}))},options:{...base,plugins:{...base.plugins,legend:{position:'top',labels:{boxWidth:8,padding:8,font:{size:9.5}}}}}});
+  mk('instChart',{type:'bar',data:{labels,datasets:[{label:'Installs (Google Ads)',data:ms.map(m=>val(m,'installs')),backgroundColor:'rgba(0,200,232,.7)',borderRadius:4},{label:'First open (GA4)',type:'line',data:ms.map(m=>val(m,'first_open')),borderColor:'#14B8A6',backgroundColor:'#14B8A6',tension:.3,pointRadius:2}]},options:base});
+  mk('evtChart',{type:'line',data:{labels,datasets:STEPS.slice(2).map(st=>({label:st.label,data:ms.map(m=>val(m,st.key)),borderColor:st.color,backgroundColor:st.color,tension:.3,pointRadius:2}))},options:{...base,plugins:{...base.plugins,legend:{position:'top',labels:{boxWidth:8,padding:8,font:{size:10}}}}}});
 }
 
 load(false);
